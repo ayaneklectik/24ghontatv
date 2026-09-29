@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { Play, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsItem, PublicHomeData } from "@/types/public";
-import { absoluteUrl } from "@/lib/public-data";
+import { absoluteUrl, newsSummary } from "@/lib/public-data";
 import { resolveExternalUrl, resolveVideoUrl, retryAlternateMediaHost, youtubeThumbnailUrl } from "@/lib/urls";
 import SpecialFeatureGrid from "@/components/SpecialFeatureGrid";
 
@@ -56,8 +56,8 @@ function HeadlineCard({ item, large = false }: { item: NewsItem; large?: boolean
       <h3 className={`${large ? "text-[28px] sm:text-[34px]" : "text-[18px] sm:text-[21px]"} mt-1 font-black leading-[1.2] text-neutral-700 transition-colors group-hover:text-red-600 line-clamp-3`}>
         {item.title}
       </h3>
-      {item.excerpt && large && (
-        <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-500 sm:text-[17px]">{item.excerpt}</p>
+      {large && newsSummary(item) && (
+        <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-500 sm:text-[17px]">{newsSummary(item)}</p>
       )}
     </Link>
   );
@@ -164,6 +164,7 @@ function SpecialSection({ home }: { home: PublicHomeData }) {
     title: item.title,
     slug: item.slug,
     excerpt: item.excerpt,
+    content: item.content,
     imageUrl: item.imageUrl,
   }));
 
@@ -278,26 +279,26 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
   return (
     <main className="w-full bg-white pb-12 font-kalpurush">
       {hero ? (
-        <section className="mx-auto mt-6 w-full max-w-[1440px] px-4 font-kalpurush sm:px-6">
-          <SectionTitle title="প্রধান সংবাদ" />
-          <div className="grid grid-cols-1 gap-8 border-b-2 border-neutral-200 pb-6 lg:grid-cols-12">
-            <div className="flex flex-col justify-center lg:col-span-6 lg:border-r lg:border-neutral-200 lg:pr-8">
+        <section className="mx-auto mt-5 w-full max-w-[1200px] px-4 font-kalpurush sm:px-6">
+          <div className="grid grid-cols-1 gap-5 border-b border-neutral-300 pb-5 lg:grid-cols-12 lg:gap-7">
+            <div className="flex flex-col justify-center lg:col-span-5 lg:border-r lg:border-neutral-200 lg:pr-7">
               <Link href={newsHref(hero)} className="group block text-left">
-                <h1 className="text-[30px] font-black leading-[1.18] text-neutral-700 transition-colors group-hover:text-red-600 sm:text-[40px] lg:text-[46px]">{hero.title}</h1>
-                {hero.excerpt && <p className="mt-4 line-clamp-4 text-[16px] font-medium leading-relaxed text-neutral-500 sm:text-[18px]">{hero.excerpt}</p>}
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-neutral-700 transition-colors group-hover:text-red-600">বিস্তারিত পড়ুন <ArrowUpRight className="h-4 w-4" /></span>
+                {hero.category && <span className="mb-2 block text-sm font-bold text-red-600">{hero.category}</span>}
+                <h1 className="text-[25px] font-black leading-[1.2] text-neutral-800 transition-colors group-hover:text-red-600 sm:text-[30px] lg:text-[34px]">{hero.title}</h1>
+                {newsSummary(hero) && <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-600 sm:text-[16px]">{newsSummary(hero)}</p>}
+                <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-neutral-700 transition-colors group-hover:text-red-600">বিস্তারিত পড়ুন <ArrowUpRight className="h-4 w-4" /></span>
               </Link>
             </div>
-            <div className="lg:col-span-6">
-              <Link href={newsHref(hero)} className="group block aspect-[16/10] overflow-hidden rounded border border-neutral-200 bg-neutral-100">
+            <div className="lg:col-span-7">
+              <Link href={newsHref(hero)} className="group block aspect-[16/9] overflow-hidden bg-neutral-100">
                 <ImageWithFallback src={imageSrc(hero)} alt={hero.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
               </Link>
             </div>
           </div>
           {heroBottom.length > 0 && (
-            <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-4">
-              {heroBottom.map((item, index) => (
-                <div key={item.id} className={`py-6 lg:px-4 ${index > 0 ? "lg:border-l lg:border-neutral-200" : "lg:pl-0"} ${index === heroBottom.length - 1 ? "lg:pr-0" : ""}`}>
+            <div className="grid grid-cols-2 gap-4 pt-5 sm:grid-cols-4 sm:gap-5">
+              {heroBottom.map((item) => (
+                <div key={item.id} className="border-l border-neutral-200 pl-3 first:border-0 first:pl-0 sm:pl-4">
                   <HeadlineCard item={item} />
                 </div>
               ))}
