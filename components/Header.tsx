@@ -189,7 +189,7 @@ export default function Header({
           <img
             src={logo}
             alt={title}
-            className="h-12 w-auto object-contain sm:h-14 md:h-16 lg:h-[68px]"
+            className="h-12 w-auto object-contain sm:h-14 md:h-[72px] lg:h-20"
             suppressHydrationWarning
             onError={(event) => {
               event.currentTarget.src = "/logo.png";
@@ -253,7 +253,7 @@ export default function Header({
                 <Link
                   key={category.id}
                   href={href}
-                  className={`shrink-0 px-2 py-2 text-[13px] font-bold transition-colors sm:px-2.5 sm:text-[14px] md:text-[15px] xl:px-3 xl:text-[16px] ${
+                  className={`shrink-0 px-2 py-2 text-[13px] font-bold transition-colors sm:px-2.5 sm:text-[15px] md:text-[16px] xl:px-3 xl:text-[17px] ${
                     pathname === href ? "text-red-600" : "text-neutral-700 hover:text-red-600"
                   }`}
                 >
