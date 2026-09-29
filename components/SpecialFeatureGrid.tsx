@@ -1,6 +1,6 @@
 'use client';
 
-import { PLACEHOLDER_IMAGE } from '@/lib/public-data';
+import { PLACEHOLDER_IMAGE, newsSummary } from '@/lib/public-data';
 import { retryAlternateMediaHost } from '@/lib/urls';
 
 import React, { useState } from 'react';
@@ -11,6 +11,7 @@ interface NewsArticle {
   title: string;
   slug: string;
   excerpt?: string | null;
+  content?: string | null;
   featuredImg?: string | null;
   image?: string;
   imageUrl?: string;
@@ -227,9 +228,9 @@ export default function SpecialFeatureGrid({ news = [], config }: SpecialFeature
                 <h3 className="text-2xl sm:text-3xl font-black text-neutral-700 leading-snug group-hover:text-red-600 transition-colors">
                   {mainLeadArticle.title}
                 </h3>
-                {mainLeadArticle.excerpt && (
+                {newsSummary(mainLeadArticle) && (
                   <p className="text-[16px] text-neutral-500 font-medium leading-relaxed line-clamp-3">
-                    {mainLeadArticle.excerpt}
+                    {newsSummary(mainLeadArticle)}
                   </p>
                 )}
                 <span className="inline-block text-neutral-700 font-bold text-[15px] hover:text-red-600 transition-colors mt-1">
@@ -271,6 +272,7 @@ export default function SpecialFeatureGrid({ news = [], config }: SpecialFeature
                 <h3 className="text-white font-black text-2xl sm:text-4xl leading-snug line-clamp-2 group-hover:text-red-400 transition-colors">
                   {mainLeadArticle.title}
                 </h3>
+                {newsSummary(mainLeadArticle) && <p className="mt-2 max-w-2xl line-clamp-2 text-sm text-white/80 sm:text-base">{newsSummary(mainLeadArticle)}</p>}
               </div>
             </Link>
           )}
@@ -335,7 +337,7 @@ export default function SpecialFeatureGrid({ news = [], config }: SpecialFeature
                   {activeSlide + 1} / {featuredArticles.length}
                 </span>
                 <h3 className="max-w-3xl text-xl font-bold leading-snug text-white sm:text-3xl">{currentSlide.title}</h3>
-                {currentSlide.excerpt && <p className="mt-2 max-w-2xl line-clamp-2 text-sm text-white/80">{currentSlide.excerpt}</p>}
+                {newsSummary(currentSlide) && <p className="mt-2 max-w-2xl line-clamp-2 text-sm text-white/80">{newsSummary(currentSlide)}</p>}
               </div>
             </div>
           </Link>
