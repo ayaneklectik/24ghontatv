@@ -172,34 +172,32 @@ export default function Header({
   const navCategories = categories.filter((item) => item.name).slice(0, 12);
 
   return (
-    <header className="relative w-full bg-white font-kalpurush text-neutral-800 select-none">
-      <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-5 px-4 py-5 sm:px-6 md:flex-row">
-        <div className="flex w-full flex-col items-center gap-5 sm:flex-row sm:justify-start md:w-auto md:gap-8">
-          <Link href="/" className="flex shrink-0 items-center" aria-label={title}>
-            <img
-              src={logo}
-              alt={title}
-              className="h-20 w-auto object-contain sm:h-[84px]"
-              suppressHydrationWarning
-              onError={(event) => {
-                event.currentTarget.src = "/logo.png";
-              }}
-            />
-          </Link>
+    <header className="relative w-full border-t border-red-600 bg-white font-kalpurush text-neutral-800 select-none">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 sm:px-6">
+        <a
+          href="https://calendar.google.com/calendar/u/0/r"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="col-span-3 row-start-2 text-center text-neutral-600 transition-colors hover:text-red-600 sm:col-span-1 sm:col-start-1 sm:row-start-1 sm:text-left"
+          title="গুগল ক্যালেন্ডার"
+        >
+          <p className="text-xs font-bold text-neutral-800 sm:text-sm">{dateStr.engDate || "লোড হচ্ছে..."}</p>
+          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500 sm:text-xs">{dateStr.bgDate}</p>
+        </a>
 
-          <a
-            href="https://calendar.google.com/calendar/u/0/r"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-center text-neutral-600 transition-colors hover:text-red-600 sm:text-left"
-            title="গুগল ক্যালেন্ডার"
-          >
-            <p className="text-sm font-bold text-neutral-800">{dateStr.engDate || "লোড হচ্ছে..."}</p>
-            <p className="mt-0.5 text-xs font-semibold text-neutral-500">{dateStr.bgDate}</p>
-          </a>
-        </div>
+        <Link href="/" className="col-start-2 row-start-1 flex shrink-0 items-center" aria-label={title}>
+          <img
+            src={logo}
+            alt={title}
+            className="h-12 w-auto object-contain sm:h-14 md:h-16 lg:h-[68px]"
+            suppressHydrationWarning
+            onError={(event) => {
+              event.currentTarget.src = "/logo.png";
+            }}
+          />
+        </Link>
 
-        <div className="flex items-center gap-2.5 pr-1">
+        <div className="col-start-3 row-start-1 flex items-center justify-self-end gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={toggleReadingMode}
@@ -226,12 +224,12 @@ export default function Header({
         </div>
       </div>
 
-      <div className="w-full border-y-2 border-red-600 bg-white">
-        <div className="mx-auto max-w-[1440px] px-2 sm:px-4">
-          <nav className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-none" aria-label="প্রধান নেভিগেশন">
+      <div className="w-full border-b border-neutral-300 bg-white">
+        <div className="w-full border-t border-red-600 px-2 sm:px-4">
+          <nav className="flex w-full items-center justify-start overflow-x-auto whitespace-nowrap scrollbar-none lg:justify-center" aria-label="প্রধান নেভিগেশন">
             <Link
               href="/"
-              className={`flex shrink-0 items-center px-3 py-3 transition-colors sm:px-4 ${
+              className={`flex shrink-0 items-center px-2 py-2 transition-colors sm:px-3 ${
                 pathname === "/" ? "text-red-600" : "text-neutral-700 hover:text-red-600"
               }`}
               aria-label="হোম"
@@ -255,7 +253,7 @@ export default function Header({
                 <Link
                   key={category.id}
                   href={href}
-                  className={`shrink-0 px-3 py-3 text-[16px] font-bold transition-colors sm:px-4 sm:text-[17px] ${
+                  className={`shrink-0 px-2 py-2 text-[13px] font-bold transition-colors sm:px-2.5 sm:text-[14px] md:text-[15px] xl:px-3 xl:text-[16px] ${
                     pathname === href ? "text-red-600" : "text-neutral-700 hover:text-red-600"
                   }`}
                 >
@@ -266,7 +264,7 @@ export default function Header({
 
             <Link
               href="/search"
-              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-4 py-3 text-[16px] font-bold transition-colors sm:text-[17px] ${
+              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-3 py-2 text-[13px] font-bold transition-colors sm:px-3 sm:text-[14px] ${
                 pathname === "/search" ? "text-red-600" : "text-neutral-700 hover:text-red-600"
               }`}
             >
@@ -279,7 +277,7 @@ export default function Header({
 
       {ticker.length > 0 && (
         <div className="w-full bg-[#EFEFEF]">
-          <div className="mx-auto flex h-12 max-w-[1440px] items-center overflow-hidden px-4">
+          <div className="mx-auto flex h-10 max-w-[1200px] items-center overflow-hidden px-4">
             <div className="z-10 flex shrink-0 items-center gap-2.5 bg-[#EFEFEF] pr-5 shadow-[6px_0_10px_#EFEFEF]">
               <span className="text-[19px] font-black leading-none text-neutral-900">আলোচিত</span>
               <span className="-translate-y-0.5 text-[14px] font-black text-red-600">❯</span>
