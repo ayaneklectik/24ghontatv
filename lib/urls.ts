@@ -1,5 +1,5 @@
 const DEFAULT_MEDIA_FALLBACK = '/images/placeholder-news.svg';
-const DEFAULT_MEDIA_BASE_URL = 'https://api.24ghontatv.com';
+const DEFAULT_MEDIA_BASE_URL = 'https://24ghontatv.com';
 const API_MEDIA_HOST = 'api.24ghontatv.com';
 const LEGACY_MEDIA_HOST = '24ghontatv.com';
 
@@ -11,9 +11,6 @@ export function alternateMediaUrl(value: string): string | null {
 
     if (url.hostname === API_MEDIA_HOST || url.hostname === 'dev.24ghontatv.com') {
       return `https://${LEGACY_MEDIA_HOST}/public${path}`;
-    }
-    if (url.hostname === LEGACY_MEDIA_HOST || url.hostname === `www.${LEGACY_MEDIA_HOST}`) {
-      return `https://${API_MEDIA_HOST}${path}`;
     }
   } catch {
     return null;
@@ -54,6 +51,17 @@ function mediaBaseUrl(): string {
     process.env.LARAVEL_BASE_URL;
   let base = configuredBase || DEFAULT_MEDIA_BASE_URL;
 
+  if (configuredBase) {
+    try {
+      const hostname = new URL(configuredBase).hostname;
+      if (hostname === API_MEDIA_HOST || hostname === 'dev.24ghontatv.com') {
+        base = DEFAULT_MEDIA_BASE_URL;
+      }
+    } catch {
+      base = DEFAULT_MEDIA_BASE_URL;
+    }
+  }
+
   if (process.env.NODE_ENV === 'production' && configuredBase) {
     try {
       const hostname = new URL(configuredBase).hostname;
@@ -65,7 +73,7 @@ function mediaBaseUrl(): string {
     }
   }
 
-  return base.replace(/\/+$/, '');
+  return `${base.replace(/\/+$/, '')}/public`;
 }
 
 export function resolveMediaUrl(
@@ -75,10 +83,11 @@ export function resolveMediaUrl(
   if (!value) return fallback;
   const raw = String(value).trim();
 
-  if (/^https?:/i.test(raw)) {
+  if (/^(https?:|\/\/)/i.test(raw)) {
     try {
-      const parsed = new URL(raw);
+      const parsed = new URL(raw.startsWith('//') ? `https:${raw}` : raw);
       const rewriteHosts = new Set([
+        'api.24ghontatv.com',
         'dev.24ghontatv.com',
         '24ghontatv.com',
         'www.24ghontatv.com',
@@ -92,11 +101,10 @@ export function resolveMediaUrl(
       return raw;
     }
 
-    return raw;
+    return raw.startsWith('//') ? `https:${raw}` : raw;
   }
 
   if (/^(data:|blob:)/i.test(raw)) return raw;
-  if (raw.startsWith('//')) return `https:${raw}`;
 
   const path = cleanPath(raw);
   const base = mediaBaseUrl();
