@@ -18,6 +18,23 @@ export function absoluteUrl(url?: string | null): string {
   return resolveMediaUrl(url, PLACEHOLDER_IMAGE);
 }
 
+export function newsSummary(item: { excerpt?: string | null; content?: string | null }, wordLimit = 20): string {
+  const source = item.excerpt?.trim() || item.content?.trim() || '';
+  const plainText = source
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>');
+  const words = plainText.split(/\s+/).filter(Boolean);
+
+  return words.length > wordLimit
+    ? `${words.slice(0, wordLimit).join(' ')}...`
+    : words.join(' ');
+}
+
 export function mapNewsItem(item: any): NewsItem {
   const image = item?.image_url ?? item?.imageUrl ?? item?.image ?? item?.featuredImg;
   const imagePath = image && !String(image).includes('/')
