@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -15,7 +15,7 @@ import {
   FaUpload, FaTag, FaXmark, FaGlobe, FaStar, FaBolt, FaCheck
 } from 'react-icons/fa6';
 import { createNewsArticle } from '@/lib/api';
-import { fetchAdminCategories } from '@/lib/admin-api';
+import { fetchAdminCategories, uploadNewsEditorImage } from '@/lib/admin-api';
 
 interface CategoryItem {
   id: string;
@@ -41,6 +41,8 @@ export default function NewPostPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageCaption, setImageCaption] = useState('');
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const inlineImageInput = useRef<HTMLInputElement>(null);
   
   // News Placement Toggles
   const [isBreaking, setIsBreaking] = useState(false);
@@ -146,6 +148,26 @@ export default function NewPostPage() {
     }
   };
 
+  const uploadInlineImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (!editor || files.length === 0) return;
+
+    setUploadingImages(true);
+    setError(null);
+    try {
+      for (const file of files) {
+        const imageUrl = await uploadNewsEditorImage(file);
+        editor.chain().focus().setImage({ src: imageUrl, alt: file.name }).run();
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Could not upload article image.');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
   const addYoutubeVideo = () => {
     const url = prompt('Enter YouTube Video URL:');
     if (url && editor) {
@@ -248,7 +270,7 @@ export default function NewPostPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            disabled={loading}
+            disabled={loading || uploadingImages}
             onClick={() => handleSubmit('DRAFT')}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition disabled:opacity-50"
           >
@@ -256,7 +278,7 @@ export default function NewPostPage() {
           </button>
           <button
             type="button"
-            disabled={loading}
+            disabled={loading || uploadingImages}
             onClick={() => handleSubmit('PUBLISHED')}
             className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm shadow-md transition disabled:opacity-50"
           >
@@ -458,9 +480,28 @@ export default function NewPostPage() {
                 type="button"
                 onClick={addImageUrl}
                 className="p-2 hover:bg-gray-200 rounded text-blue-600 flex items-center gap-1 font-medium"
+                title="Insert an image from a URL"
               >
                 <FaImage /> Image
               </button>
+              <button
+                type="button"
+                onClick={() => inlineImageInput.current?.click()}
+                disabled={uploadingImages}
+                className="p-2 hover:bg-gray-200 rounded text-blue-700 flex items-center gap-1 font-medium disabled:opacity-50"
+                title="Upload one or more images into the article"
+              >
+                <FaUpload /> {uploadingImages ? 'Uploading...' : 'Upload images'}
+              </button>
+              <input
+                ref={inlineImageInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={uploadInlineImages}
+                className="hidden"
+                aria-label="Upload article images"
+              />
               <button
                 type="button"
                 onClick={addYoutubeVideo}
