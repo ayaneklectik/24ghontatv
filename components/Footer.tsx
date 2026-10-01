@@ -2,30 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { FaFacebookF, FaYoutube, FaInstagram, FaXTwitter } from "react-icons/fa6";
+import { FaFacebookF, FaYoutube, FaInstagram, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
 import type { PublicSiteData } from "@/types/public";
-
-function sanitizeRichHtml(value?: string | null): string {
-  if (!value) return "";
-
-  return String(value)
-    .replace(/<\s*(script|iframe|object|embed|style|link|meta|form)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
-    .replace(/<\s*(script|iframe|object|embed|style|link|meta|form)[^>]*\/\s*>/gi, "")
-    .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/(href\s*=\s*["']?)\s*(?:javascript|vbscript|data):/gi, "$1#")
-    .trim();
-}
-
-function RichText({ value, className = "" }: { value?: string | null; className?: string }) {
-  const html = sanitizeRichHtml(value);
-  if (!html) return null;
-
-  return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
-}
 
 export default function Footer({ site }: { site: PublicSiteData }) {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
-  const footer = site.footer ?? {};
   const app = site.app ?? {};
   const social = site.social_media ?? {};
 
@@ -36,23 +17,15 @@ export default function Footer({ site }: { site: PublicSiteData }) {
   }, []);
 
   const siteTitle = app.app_title || "২৪ঘণ্টা";
-  const description =
-    app.app_title
-      ? `${app.app_title} — সর্বশেষ সংবাদ, বিশ্লেষণ ও বিশেষ প্রতিবেদন।`
-      : "সর্বশেষ সংবাদ, বিশ্লেষণ ও বিশেষ প্রতিবেদন।";
-  const address = footer.address || app.address || "";
-  const contact = footer.contact || app.contact || "";
-  const email = footer.email || app.email || "";
-
   const quickLinks = [
-    ["বিজ্ঞাপন", "/advertise"],
-    ["গোপনীয়তার নীতি", "/privacy"],
-    ["যোগাযোগ", "/contact"],
-    ["আমাদের সম্পর্কে", "/about"],
+    ["বিজ্ঞাপন", "https://24ghontatv.com/#"],
+    ["গোপনীয়তার নীতি", "https://24ghontatv.com/#"],
+    ["যোগাযোগ", "https://24ghontatv.com/#"],
+    ["আমাদের সম্পর্কে", "https://24ghontatv.com/#"],
   ] as const;
 
   return (
-    <footer className="relative mt-10 w-full bg-[#E3E3E3] font-kalpurush text-neutral-800">
+    <footer className="relative mt-10 w-full bg-[#dedfe1] font-kalpurush text-neutral-800">
       {showScrollBtn && (
         <button
           type="button"
@@ -65,84 +38,85 @@ export default function Footer({ site }: { site: PublicSiteData }) {
         </button>
       )}
 
-      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-8 px-6 py-12 text-left md:grid-cols-2 md:gap-0 lg:grid-cols-12">
-        <div className="md:pr-8 lg:col-span-3 lg:border-r lg:border-neutral-300">
-          <Link href="/" aria-label={siteTitle} className="inline-flex h-[76px] items-center">
+      <div className="mx-auto grid w-full grid-cols-1 gap-8 px-6 py-8 text-center md:grid-cols-3 md:gap-0 md:px-8 md:py-7">
+        <div className="flex flex-col items-center justify-center md:px-6 md:border-r-[5px] md:border-black">
+          <Link href="/" aria-label={siteTitle} className="inline-flex h-[92px] items-center">
             <img
               src={app.logo_url || "/logo.png"}
               alt={siteTitle}
-              className="h-20 w-auto object-contain"
+              className="h-[88px] w-auto max-w-full object-contain"
               onError={(event) => {
                 event.currentTarget.src = "/logo.png";
               }}
             />
           </Link>
-          <p className="mt-4 max-w-sm text-[14px] font-medium leading-relaxed text-neutral-600">{description}</p>
-        </div>
-
-        <div className="md:px-8 lg:col-span-3 lg:border-r lg:border-neutral-300">
-          <h3 className="mb-4 text-[16px] font-black text-neutral-900">সম্পাদকীয় ও যোগাযোগ</h3>
-          <div className="space-y-3 text-[14px] leading-relaxed text-neutral-600">
-            {contact ? (
-              <RichText value={contact} className="[&_a]:text-red-600 [&_a]:underline" />
-            ) : (
-              <p>সর্বশেষ সংবাদ ও আপডেটের জন্য আমাদের সঙ্গে যোগাযোগ করুন।</p>
-            )}
-            {email && <RichText value={email} className="[&_a]:text-red-600 [&_a]:underline" />}
+          <div className="mt-3 space-y-1 text-[17px] leading-snug">
+            <p className="font-bold text-red-700">সম্পাদক ও প্রকাশক</p>
+            <p>আরিফ সোহেল</p>
+            <p className="font-bold text-red-700">নির্বাহী সম্পাদক</p>
+            <p>এস এম আবুল হোসেন</p>
+            <p className="font-bold text-red-700">উপ-সম্পাদক</p>
+            <p>সালাউদ্দিন স্বপন</p>
           </div>
         </div>
 
-        <div className="md:px-8 lg:col-span-3 lg:border-r lg:border-neutral-300">
-          <h3 className="mb-4 text-[16px] font-black text-neutral-900">ঠিকানা</h3>
-          {address ? (
-            <RichText
-              value={address}
-              className="text-[14px] font-medium leading-relaxed text-neutral-600 [&_a]:text-red-600 [&_a]:underline [&_p]:my-2"
-            />
-          ) : (
-            <p className="text-[14px] leading-relaxed text-neutral-600">ঠিকানা শীঘ্রই হালনাগাদ করা হবে।</p>
-          )}
-
-          <div className="mt-5 flex items-center gap-2">
-            {[
-              [social.facebook, "Facebook", <FaFacebookF key="f" />],
-              [social.youtube, "YouTube", <FaYoutube key="y" />],
-              [social.twitter, "X", <FaXTwitter key="x" />],
-              [social.instagram, "Instagram", <FaInstagram key="i" />],
-            ].map(([href, label, icon]) =>
-              href ? (
-                <a
-                  key={String(label)}
-                  href={String(href)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={String(label)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-700 text-white transition hover:bg-red-600"
-                >
-                  {icon as React.ReactNode}
-                </a>
-              ) : null
-            )}
+        <div className="flex flex-col items-center justify-center md:px-6 md:border-r-[5px] md:border-black">
+          <h2 className="mb-4 text-[20px] font-bold leading-snug text-red-700">বার্তা বিভাগ ও বাণিজ্যিক যোগাযোগ</h2>
+          <div className="space-y-2 text-[17px] leading-snug">
+            <p className="font-bold text-red-700">নির্বাহী প্রধান [আইটি]</p>
+            <p className="font-bold">MD AIYANUR RAHMAN</p>
+            <p className="font-sans text-[14px]">Senior Developer</p>
+            <a
+              href="https://www.upwork.com/freelancers/~01cf0fb3dd5bb153ff?mp_source=share"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-[15px] font-bold text-neutral-700 underline underline-offset-2 transition-colors hover:text-red-600"
+            >
+              Upwork প্রোফাইল
+            </a>
+            <p className="pt-2 font-bold text-red-700">আবাসিক সম্পাদক [যুক্তরাষ্ট্র]</p>
+            <p className="font-semibold">দর্পণ কবীর</p>
+            <p className="pt-2">২৪ঘণ্টা টিভি, মানিকগঞ্জ হাউজিং (তৃতীয় তলা)</p>
+            <p>২১৬, শহীদ সৈয়দ নজরুল ইসলাম সরণি</p>
+            <p>পুরানা পল্টন, ঢাকা-১০০০</p>
           </div>
         </div>
 
-        <div className="md:pl-8 lg:col-span-3">
-          <h3 className="mb-4 text-[16px] font-black text-neutral-900">দ্রুত লিংক</h3>
-          <div className="flex flex-col gap-2 text-[14px] font-bold text-neutral-700">
+        <div className="flex flex-col items-center justify-center md:pl-6">
+          <nav aria-label="ফুটার লিংক" className="mb-6 flex flex-col gap-2 text-[17px] font-semibold text-neutral-700">
             {quickLinks.map(([label, href]) => (
-              <Link key={href} href={href} className="transition-colors hover:text-red-600">
+              <a key={label} href={href} className="transition-colors hover:text-red-700">
                 {label}
-              </Link>
+              </a>
             ))}
-            <Link href="/search" className="transition-colors hover:text-red-600">সংবাদ খুঁজুন</Link>
-            <Link href="/gallery" className="transition-colors hover:text-red-600">ফটো গ্যালারি</Link>
-            <Link href="/video/archive" className="transition-colors hover:text-red-600">ভিডিও আর্কাইভ</Link>
+          </nav>
+
+          <div className="flex items-center justify-center gap-3">
+            {[
+              [social.facebook || "https://www.facebook.com/24ghontatv", "Facebook", <FaFacebookF key="f" />],
+              [social.twitter || "https://x.com/24ghontatv", "X", <FaXTwitter key="x" />],
+              [social.instagram || "https://www.instagram.com/24ghontatv/", "Instagram", <FaInstagram key="i" />],
+              [social.youtube || "https://www.youtube.com/@24ghontatv", "YouTube", <FaYoutube key="y" />],
+              ["https://www.linkedin.com/", "LinkedIn", <FaLinkedinIn key="in" />],
+            ].map(([href, label, icon]) => (
+              <a
+                key={String(label)}
+                href={String(href)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={String(label)}
+                title={String(label)}
+                className="flex h-10 w-10 items-center justify-center rounded-md border-2 border-black/70 text-neutral-700 transition-colors hover:border-red-700 hover:bg-red-700 hover:text-white"
+              >
+                {icon as React.ReactNode}
+              </a>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="w-full bg-[#7A7A7A] py-4 text-center font-sans text-[13px] tracking-wide text-white/90">
-        © {new Date().getFullYear()} | {siteTitle} | all rights reserved
+      <div className="mx-6 border-t border-white/70 py-4 text-center font-sans text-[15px] text-neutral-800">
+        © {new Date().getFullYear()} | All rights reserved by 24Ghontatv.com
       </div>
     </footer>
   );
