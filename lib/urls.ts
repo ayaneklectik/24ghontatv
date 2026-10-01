@@ -94,7 +94,7 @@ export function resolveMediaUrl(
       ]);
       if (rewriteHosts.has(parsed.hostname)) {
         const path = cleanPath(parsed.pathname);
-        if (path.toLowerCase().startsWith('images/media/')) {
+        if (/^images\/(?:media|news_img)\//i.test(path)) {
           return `https://${API_MEDIA_HOST}/${path}`;
         }
         const base = mediaBaseUrl();
@@ -110,7 +110,7 @@ export function resolveMediaUrl(
   if (/^(data:|blob:)/i.test(raw)) return raw;
 
   const path = cleanPath(raw);
-  if (path.toLowerCase().startsWith('images/media/')) {
+  if (/^images\/(?:media|news_img)\//i.test(path)) {
     return `https://${API_MEDIA_HOST}/${path}`;
   }
   const base = mediaBaseUrl();
