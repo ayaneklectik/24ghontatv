@@ -173,16 +173,42 @@ function SpecialSection({ home }: { home: PublicHomeData }) {
 
 function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
   const [index, setIndex] = useState(0);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const items = videos.slice(0, 8);
   if (!items.length) return null;
 
   const visible = 4;
   const maxIndex = Math.max(0, items.length - visible);
+  const activeVideo = items.find((video) => video.id === activeVideoId) ?? items[0];
 
   return (
     <section className="mx-auto mt-8 w-full max-w-[1440px] px-4 font-kalpurush sm:px-6">
       <SectionTitle title="ভিডিও" href="/video/archive" />
       <div className="relative overflow-hidden bg-[#E51A24] px-10 pb-14 pt-7 sm:px-12">
+        <div className="mb-6 grid overflow-hidden rounded-lg bg-neutral-950 shadow-xl lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+          <div className="aspect-video bg-black">
+            {activeVideo.embedUrl ? (
+              <iframe
+                src={activeVideo.embedUrl}
+                title={activeVideo.title}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
+              <a href={activeVideo.link} target="_blank" rel="noopener noreferrer" className="flex h-full items-center justify-center gap-3 text-white">
+                <Play className="h-10 w-10 fill-current" />
+                <span className="font-bold">ভিডিওটি ইউটিউবে দেখুন</span>
+              </a>
+            )}
+          </div>
+          <div className="flex flex-col justify-center p-5 text-white sm:p-7">
+            <span className="text-xs font-bold uppercase tracking-wider text-red-300">এখন চলছে</span>
+            <h3 className="mt-2 text-xl font-black leading-snug sm:text-2xl">{activeVideo.title}</h3>
+            {activeVideo.publishedAt && <p className="mt-3 text-sm text-neutral-400">{activeVideo.publishedAt}</p>}
+          </div>
+        </div>
         <button
           type="button"
           onClick={() => setIndex((value) => Math.max(0, value - 1))}
@@ -197,13 +223,19 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
             const link = resolveVideoUrl(video.link) || `/video/${encodeURIComponent(video.id)}`;
             const thumbnail = video.thumbnailUrl || youtubeThumbnailUrl(resolveVideoUrl(video.link));
             return (
-              <a key={video.id} href={link} target={link.startsWith("http") ? "_blank" : undefined} rel={link.startsWith("http") ? "noopener noreferrer" : undefined} className="group block">
+              <button
+                key={video.id}
+                type="button"
+                onClick={() => setActiveVideoId(video.id)}
+                aria-pressed={activeVideo.id === video.id}
+                className={`group block w-full text-left ${activeVideo.id === video.id ? "rounded outline outline-2 outline-white" : ""}`}
+              >
                 <div className="relative aspect-[16/10] overflow-hidden rounded border border-white/10 bg-neutral-900">
                   <ImageWithFallback src={thumbnail || "/images/placeholder-news.svg"} alt={video.title} className="h-full w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.03] group-hover:opacity-100" />
                   <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#E51A24] text-white shadow-lg"><Play className="h-4 w-4 fill-current" /></span>
                 </div>
                 <h3 className="mt-3 line-clamp-2 text-[15px] leading-snug text-white transition-colors group-hover:text-neutral-100">{video.title}</h3>
-              </a>
+              </button>
             );
           })}
         </div>
@@ -353,3 +385,4 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
     </main>
   );
 }
+
