@@ -14,20 +14,43 @@ import {
 
 export const PLACEHOLDER_IMAGE = '/images/placeholder-news.svg';
 
+const htmlEntities: Record<string, string> = {
+  amp: '&', apos: "'", quot: '"', nbsp: ' ', lt: '<', gt: '>',
+  lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”',
+  ndash: '–', mdash: '—', hellip: '…', copy: '©', reg: '®', trade: '™',
+  middot: '·', bull: '•', euro: '€', pound: '£', yen: '¥', deg: '°',
+};
+
+export function decodeHtmlEntities(value?: string | null): string {
+  let decoded = String(value ?? '');
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = decoded.replace(/&(#x[\da-f]+|#\d+|[a-z][a-z\d]+);/gi, (entity, code: string) => {
+      if (code[0] === '#') {
+        const numeric = code[1]?.toLowerCase() === 'x'
+          ? Number.parseInt(code.slice(2), 16)
+          : Number.parseInt(code.slice(1), 10);
+        return Number.isFinite(numeric) && numeric > 0 && numeric <= 0x10ffff
+          ? String.fromCodePoint(numeric)
+          : entity;
+      }
+
+      return htmlEntities[code.toLowerCase()] ?? entity;
+    });
+    if (next === decoded) break;
+    decoded = next;
+  }
+
+  return decoded;
+}
+
 export function absoluteUrl(url?: string | null): string {
   return resolveMediaUrl(url, PLACEHOLDER_IMAGE);
 }
 
 export function newsSummary(item: { excerpt?: string | null; content?: string | null }, wordLimit = 20): string {
   const source = item.excerpt?.trim() || item.content?.trim() || '';
-  const plainText = source
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;|&#160;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>');
+  const plainText = decodeHtmlEntities(source).replace(/<[^>]*>/g, ' ');
   const words = plainText.split(/\s+/).filter(Boolean);
 
   return words.length > wordLimit
@@ -43,15 +66,15 @@ export function mapNewsItem(item: any): NewsItem {
 
   return {
     id: String(item?.id ?? item?.news_id ?? ''),
-    title: item?.title ?? item?.news_title ?? '',
+    title: decodeHtmlEntities(item?.title ?? item?.news_title ?? ''),
     slug: String(item?.slug ?? item?.title_link ?? item?.id ?? ''),
-    excerpt: item?.excerpt ?? item?.news_sub_title ?? '',
+    excerpt: decodeHtmlEntities(item?.excerpt ?? item?.news_sub_title ?? ''),
     content: item?.content ?? item?.dis ?? '',
     imageUrl: absoluteUrl(imagePath),
     publishedAt: item?.publishedAt ?? [item?.published_date, item?.published_time].filter(Boolean).join(' '),
-    author: item?.author ?? item?.userModel?.name ?? item?.user_model?.name ?? item?.user?.name ?? undefined,
-    location: item?.location ?? item?.representative_loc ?? undefined,
-    category: item?.category?.name ?? item?.category?.cat_name ?? item?.categoryName ?? undefined,
+    author: decodeHtmlEntities(item?.author ?? item?.userModel?.name ?? item?.user_model?.name ?? item?.user?.name ?? '') || undefined,
+    location: decodeHtmlEntities(item?.location ?? item?.representative_loc ?? '') || undefined,
+    category: decodeHtmlEntities(item?.category?.name ?? item?.category?.cat_name ?? item?.categoryName ?? '') || undefined,
     categoryId: item?.categoryId ? String(item.categoryId) : item?.cat ? String(item.cat) : item?.category?.id ? String(item.category.id) : undefined,
     categorySlug: item?.categorySlug ?? item?.category?.slug ?? item?.category?.cat_slug ?? item?.category?.cat_name ?? undefined,
     views: Number(item?.views ?? item?.hit ?? 0),
@@ -59,7 +82,7 @@ export function mapNewsItem(item: any): NewsItem {
     isLead: Boolean(item?.isLead ?? item?.islead),
     isPopular: Boolean(item?.isPopular),
     tags: Array.isArray(item?.tags)
-      ? item.tags.map((tag: unknown) => String(tag)).filter(Boolean)
+      ? item.tags.map((tag: unknown) => decodeHtmlEntities(String(tag))).filter(Boolean)
       : typeof item?.meta_keyword === 'string'
         ? item.meta_keyword.split(',').map((x: string) => x.trim()).filter(Boolean)
         : [],
@@ -69,7 +92,7 @@ export function mapNewsItem(item: any): NewsItem {
 export function mapCategory(item: any): CategoryItem {
   return {
     id: String(item?.id ?? ''),
-    name: item?.name ?? item?.cat_name ?? '',
+    name: decodeHtmlEntities(item?.name ?? item?.cat_name ?? ''),
     slug: item?.slug ?? item?.cat_slug ?? item?.cat_name ?? String(item?.id ?? ''),
     order: Number(item?.order ?? item?.cat_order ?? 0),
   };
@@ -114,7 +137,7 @@ export function mapHome(payload: any): PublicHomeData {
     just_now: Array.isArray(data?.just_now)
       ? data.just_now.map((x: any) => ({
           id: String(x?.id ?? ''),
-          title: x?.title ?? x?.news_title ?? '',
+          title: decodeHtmlEntities(x?.title ?? x?.news_title ?? ''),
           url: resolveExternalUrl(x?.url ?? x?.news_url) ?? (x?.id ? `/news/${x.id}` : '/'),
           publishedAt: x?.publishedAt ?? x?.published_date,
         }))
@@ -125,8 +148,8 @@ export function mapHome(payload: any): PublicHomeData {
           const link = resolveVideoUrl(x?.video_url ?? x?.video_link ?? x?.link);
           return {
             id: String(x?.id ?? ''),
-            title: x?.title ?? x?.video_title ?? '',
-            details: x?.details ?? x?.video_details ?? '',
+            title: decodeHtmlEntities(x?.title ?? x?.video_title ?? ''),
+            details: decodeHtmlEntities(x?.details ?? x?.video_details ?? ''),
             link: link ?? '/video/archive',
             thumbnailUrl: resolveMediaUrl(x?.thumbnail_url ?? x?.thumbnailUrl, youtubeThumbnailUrl(link) ?? PLACEHOLDER_IMAGE),
             embedUrl: youtubeEmbedUrl(link),
@@ -136,7 +159,7 @@ export function mapHome(payload: any): PublicHomeData {
       : [],
     special_section: data?.special_section ? {
       isSectionActive: Boolean(data.special_section.isSectionActive),
-      sectionTitle: data.special_section.sectionTitle ?? '',
+      sectionTitle: decodeHtmlEntities(data.special_section.sectionTitle ?? ''),
       layoutStyle: data.special_section.layoutStyle ?? 'classic_split',
       showBanner: Boolean(data.special_section.showBanner),
       bannerImage: absoluteUrl(data.special_section.bannerImage),
@@ -164,7 +187,7 @@ export function mapHome(payload: any): PublicHomeData {
     photos: Array.isArray(data?.photos)
       ? data.photos.map((x: any) => ({
           id: String(x?.id ?? ''),
-          title: x?.title ?? x?.photo_details ?? '',
+          title: decodeHtmlEntities(x?.title ?? x?.photo_details ?? ''),
           imageUrl: absoluteUrl(x?.imageUrl ?? x?.image_url ?? x?.photo),
           thumbnailUrl: absoluteUrl(x?.thumbnailUrl ?? x?.thumbnail_url ?? x?.photo),
           publishedAt: x?.publishedAt ?? x?.cdate,
