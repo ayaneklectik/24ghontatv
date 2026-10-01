@@ -112,6 +112,30 @@ export async function fetchAdminNews(params: {
   };
 }
 
+export async function uploadNewsEditorImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('upload', file);
+
+  const payload = await request<any>('/news/editor-upload', {
+    method: 'POST',
+    body: formData,
+  });
+  const imageUrl =
+    payload?.url ??
+    payload?.imageUrl ??
+    payload?.image_url ??
+    payload?.data?.url ??
+    payload?.data?.imageUrl ??
+    payload?.data?.image_url;
+  const resolvedUrl = typeof imageUrl === 'string' ? resolveAdminMediaUrl(imageUrl) : null;
+
+  if (!resolvedUrl) {
+    throw new Error('The image upload did not return a usable image URL.');
+  }
+
+  return resolvedUrl;
+}
+
 export async function fetchAdminCategories(): Promise<AdminCategory[]> {
   const [catPayload, subPayload] = await Promise.all([
     request<any>('/categories'),
