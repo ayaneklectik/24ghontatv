@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { adminRequest, mapAdminNews, type AdminNews } from '@/lib/admin-api';
+import ImageExtension from '@tiptap/extension-image';
+import { adminRequest, mapAdminNews, type AdminNews, uploadNewsEditorImage } from '@/lib/admin-api';
 import { fetchCategories, updateNews, type FrontendCategory } from '@/lib/api';
 import { retryAlternateMediaHost } from '@/lib/urls';
 
@@ -36,12 +37,14 @@ export default function EditPostPage() {
   const [imageCaption, setImageCaption] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const inlineImageInput = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, ImageExtension],
     content: '',
     immediatelyRender: false,
     editorProps: {
@@ -123,6 +126,26 @@ export default function EditPostPage() {
   const mainCategories = categories.filter((category) => !category.parentId);
   const subCategories = categories.filter((category) => category.parentId === categoryId);
 
+  async function uploadInlineImages(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (!editor || files.length === 0) return;
+
+    setUploadingImages(true);
+    setError(null);
+    try {
+      for (const file of files) {
+        const imageUrl = await uploadNewsEditorImage(file);
+        editor.chain().focus().setImage({ src: imageUrl, alt: file.name }).run();
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Could not upload article image.');
+    } finally {
+      setUploadingImages(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!post || !editor) return;
@@ -182,7 +205,7 @@ export default function EditPostPage() {
           </Link>
           <button
             type="submit"
-            disabled={loading || saving || !post}
+            disabled={loading || saving || uploadingImages || !post}
             className="rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Changes'}
@@ -220,6 +243,26 @@ export default function EditPostPage() {
             </section>
             <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
               <div className="border-b border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700">Article Content</div>
+              <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-2">
+                <button
+                  type="button"
+                  onClick={() => inlineImageInput.current?.click()}
+                  disabled={uploadingImages}
+                  title="Upload one or more images into the article"
+                  className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {uploadingImages ? 'Uploading...' : 'Upload images'}
+                </button>
+                <input
+                  ref={inlineImageInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={uploadInlineImages}
+                  className="hidden"
+                  aria-label="Upload article images"
+                />
+              </div>
               {editor && <EditorContent editor={editor} />}
             </section>
           </div>
