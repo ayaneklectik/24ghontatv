@@ -1,5 +1,7 @@
+```tsx
 import type { Metadata } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: {
@@ -21,7 +23,9 @@ export default function RootLayout({
     <html lang="bn" className="scroll-smooth" suppressHydrationWarning>
       <body className="antialiased min-h-screen bg-white text-neutral-800">
         {children}
+        <Analytics />
       </body>
     </html>
   );
 }
+```
