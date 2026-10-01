@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import MediaImage from '@/components/public/MediaImage';
 import { fetchLaravelPublic } from '@/lib/public-api';
-import { mapNewsItem } from '@/lib/public-data';
+import { mapNewsItem, newsSummary } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
 import ArticleSocialActions from '@/components/public/ArticleSocialActions';
 
@@ -10,6 +11,46 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 interface PageProps { params: Promise<{ id: string }> }
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://24ghontatv.com';
+
+  try {
+    const payload = await fetchLaravelPublic<any>(`news/${encodeURIComponent(id)}`);
+    const news = payload?.data?.news;
+    const article = mapNewsItem(news);
+    if (!article.id) return {};
+
+    const description = article.excerpt || newsSummary(article, 30);
+    const hasImage = Boolean(news?.image_url ?? news?.imageUrl ?? news?.image ?? news?.featuredImg);
+    const articleUrl = new URL(`/news/${encodeURIComponent(id)}`, siteUrl).toString();
+    const images = hasImage ? [{ url: article.imageUrl, alt: article.title }] : undefined;
+
+    return {
+      title: article.title,
+      description,
+      alternates: { canonical: articleUrl },
+      openGraph: {
+        title: article.title,
+        description,
+        url: articleUrl,
+        siteName: '২৪ঘণ্টা',
+        type: 'article',
+        images,
+      },
+      twitter: {
+        card: hasImage ? 'summary_large_image' : 'summary',
+        title: article.title,
+        description,
+        images: hasImage ? [article.imageUrl] : undefined,
+      },
+    };
+  } catch (error) {
+    console.error('News metadata API error:', error);
+    return {};
+  }
+}
 
 export default async function NewsDetailPage({ params }: PageProps) {
   const { id } = await params;
