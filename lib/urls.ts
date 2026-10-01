@@ -94,6 +94,9 @@ export function resolveMediaUrl(
       ]);
       if (rewriteHosts.has(parsed.hostname)) {
         const path = cleanPath(parsed.pathname);
+        if (path.toLowerCase().startsWith('images/media/')) {
+          return `https://${API_MEDIA_HOST}/${path}`;
+        }
         const base = mediaBaseUrl();
         return base ? `${base}/${path}` : `/${path}`;
       }
@@ -107,9 +110,38 @@ export function resolveMediaUrl(
   if (/^(data:|blob:)/i.test(raw)) return raw;
 
   const path = cleanPath(raw);
+  if (path.toLowerCase().startsWith('images/media/')) {
+    return `https://${API_MEDIA_HOST}/${path}`;
+  }
   const base = mediaBaseUrl();
 
   return base ? `${base}/${path}` : `/${path}`;
+}
+
+export function resolveArticleContentImages(content?: string | null): string {
+  const trustedHosts = new Set([
+    API_MEDIA_HOST,
+    LEGACY_MEDIA_HOST,
+    'www.24ghontatv.com',
+    'dev.24ghontatv.com',
+  ]);
+
+  return String(content ?? '').replace(
+    /(<img\b[^>]*?\bsrc\s*=\s*)(["'])(.*?)\2/gi,
+    (attribute, prefix: string, quote: string, source: string) => {
+      try {
+        const url = new URL(source, `https://${API_MEDIA_HOST}`);
+        const path = url.pathname.replace(/^\/public(?=\/images\/media\/)/i, '');
+        if (!trustedHosts.has(url.hostname) || !path.toLowerCase().startsWith('/images/media/')) {
+          return attribute;
+        }
+
+        return `${prefix}${quote}https://${API_MEDIA_HOST}${path}${url.search}${url.hash}${quote}`;
+      } catch {
+        return attribute;
+      }
+    },
+  );
 }
 
 export function resolveExternalUrl(value?: string | null): string | null {
