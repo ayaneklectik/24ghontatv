@@ -1,5 +1,5 @@
 
-import { resolveMediaUrl } from '@/lib/urls';
+import { resolveArticleContentImages, resolveMediaUrl } from '@/lib/urls';
 
 function resolveAdminMediaUrl(value?: string | null): string | null {
   if (!value) return null;
@@ -60,7 +60,7 @@ export function mapAdminNews(item: any): AdminNews {
     title: item?.news_title ?? item?.title ?? '',
     slug: item?.title_link ?? item?.slug ?? item?.id ?? '',
     excerpt: item?.news_sub_title ?? item?.excerpt ?? '',
-    content: item?.dis ?? item?.content ?? '',
+    content: resolveArticleContentImages(item?.dis ?? item?.content ?? ''),
     imageUrl: resolveAdminMediaUrl(
       item?.imageUrl ?? item?.image_url ?? (item?.image ? `images/news_img/${item.image}` : null),
     ),
