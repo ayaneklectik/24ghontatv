@@ -6,6 +6,7 @@ import type {
 } from '@/types/public';
 import {
   resolveExternalUrl,
+  resolveArticleContentImages,
   resolveMediaUrl,
   resolveVideoUrl,
   youtubeEmbedUrl,
@@ -69,7 +70,7 @@ export function mapNewsItem(item: any): NewsItem {
     title: decodeHtmlEntities(item?.title ?? item?.news_title ?? ''),
     slug: String(item?.slug ?? item?.title_link ?? item?.id ?? ''),
     excerpt: decodeHtmlEntities(item?.excerpt ?? item?.news_sub_title ?? ''),
-    content: item?.content ?? item?.dis ?? '',
+    content: resolveArticleContentImages(item?.content ?? item?.dis ?? ''),
     imageUrl: absoluteUrl(imagePath),
     publishedAt: item?.publishedAt ?? [item?.published_date, item?.published_time].filter(Boolean).join(' '),
     author: decodeHtmlEntities(item?.author ?? item?.userModel?.name ?? item?.user_model?.name ?? item?.user?.name ?? '') || undefined,
