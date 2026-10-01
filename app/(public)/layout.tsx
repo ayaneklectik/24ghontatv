@@ -1,3 +1,4 @@
+```tsx
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -5,6 +6,7 @@ import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapHome } from '@/lib/public-data';
 import type { PublicHomeData } from '@/types/public';
 import { PublicSocialProvider } from '@/components/public/ArticleSocialActions';
+import { Analytics } from '@vercel/analytics/next';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -27,6 +29,8 @@ export default async function PublicLayout({ children }: { children: React.React
         <main className="w-full flex-grow clear-both block">{children}</main>
       </PublicSocialProvider>
       <Footer site={home.site} />
+      <Analytics />
     </div>
   );
 }
+```
