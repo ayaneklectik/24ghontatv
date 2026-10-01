@@ -4,6 +4,7 @@ import MediaImage from '@/components/public/MediaImage';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapNewsItem } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
+import ArticleSocialActions from '@/components/public/ArticleSocialActions';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -42,6 +43,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
             {article.publishedAt && <span>{article.publishedAt}</span>}
             <span>দেখেছেন {article.views ?? 0} বার</span>
           </div>
+          <ArticleSocialActions title={article.title} />
           {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
 
           {article.content && (
