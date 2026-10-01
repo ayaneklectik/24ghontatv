@@ -331,7 +331,7 @@ export default function NewPostPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">URL Slug</label>
               <div className="flex items-center text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600">
-                <span className="text-gray-400">24ghonta.com/news/</span>
+                <span className="text-gray-400">24ghontatv.com/news/</span>
                 <input
                   type="text"
                   value={slug}
