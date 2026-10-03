@@ -127,6 +127,7 @@ export function mapCategory(item: any): CategoryItem {
 export function mapDisplaySettings(payload: any): {
   breakingTicker: BreakingTickerSettings;
   headerAppearance: HeaderAppearanceSettings;
+  showBengaliDate: boolean;
 } {
   const settings = payload?.data ?? payload ?? {};
   const ticker = settings?.breakingTicker ?? settings?.breaking_ticker ?? {};
@@ -138,6 +139,9 @@ export function mapDisplaySettings(payload: any): {
   const backgroundBlur = Number(header?.backgroundBlur ?? header?.background_blur);
 
   return {
+    showBengaliDate: settings?.showBengaliDate === undefined && settings?.show_bengali_date === undefined
+      ? true
+      : Boolean(settings?.showBengaliDate ?? settings?.show_bengali_date),
     breakingTicker: {
       enabled: Boolean(ticker?.enabled),
       text: typeof ticker?.text === 'string' ? ticker.text : '',
