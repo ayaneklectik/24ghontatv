@@ -80,6 +80,12 @@ export interface HeaderAppearanceSettings {
   backgroundBlur: number;
 }
 
+export interface DisplaySettings {
+  breakingTicker: BreakingTickerSettings;
+  headerAppearance: HeaderAppearanceSettings;
+  showBengaliDate: boolean;
+}
+
 export interface PublicHomeData {
   site: PublicSiteData;
   categories: CategoryItem[];
