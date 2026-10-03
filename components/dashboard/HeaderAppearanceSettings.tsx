@@ -15,9 +15,10 @@ import { getHeaderBackgroundStyle, HEADER_PRESETS } from '@/lib/site-display';
 const defaultSettings: AdminDisplaySettings = {
   breakingTicker: DEFAULT_BREAKING_TICKER,
   headerAppearance: DEFAULT_HEADER_APPEARANCE,
+  showBengaliDate: true,
 };
 
-export default function HeaderAppearanceSettings() {
+export default function HeaderAppearanceSettings({ showBengaliDate = true }: { showBengaliDate?: boolean }) {
   const [settings, setSettings] = useState(defaultSettings);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -51,6 +52,10 @@ export default function HeaderAppearanceSettings() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    setSettings((current) => ({ ...current, showBengaliDate }));
+  }, [showBengaliDate]);
 
   useEffect(() => {
     if (!selectedImage) {
@@ -131,7 +136,7 @@ export default function HeaderAppearanceSettings() {
         const logoImageUrl = await uploadHeaderLogo(selectedLogo);
         headerAppearance = { ...headerAppearance, logoImageUrl };
       }
-      const updatedSettings = { ...settings, headerAppearance };
+      const updatedSettings = { ...settings, headerAppearance, showBengaliDate };
       await updateAdminDisplaySettings(updatedSettings);
       setSettings(updatedSettings);
       setSelectedImage(null);
