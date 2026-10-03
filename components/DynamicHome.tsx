@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Play, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsItem, PublicHomeData } from "@/types/public";
-import { absoluteUrl, newsSummary } from "@/lib/public-data";
+import { absoluteUrl, mapNewsItem, newsSummary } from "@/lib/public-data";
 import { resolveExternalUrl, resolveVideoUrl, retryAlternateMediaHost, youtubeThumbnailUrl } from "@/lib/urls";
 import { toBengaliDigits } from "@/lib/bengali";
 import SpecialFeatureGrid from "@/components/SpecialFeatureGrid";
@@ -15,6 +15,47 @@ function newsHref(item: NewsItem) {
 
 function imageSrc(item?: NewsItem) {
   return item?.imageUrl || "/images/placeholder-news.svg";
+}
+
+function ArticlePreview({ item, className }: { item: NewsItem; className: string }) {
+  const summary = newsSummary(item);
+  const [fetchedSummary, setFetchedSummary] = useState("");
+  const preview = summary || fetchedSummary;
+
+  useEffect(() => {
+    setFetchedSummary("");
+    if (summary || !item.id) return;
+
+    const controller = new AbortController();
+    const loadSummary = async () => {
+      try {
+        const response = await fetch(`/api/news/${encodeURIComponent(item.id)}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`Article preview request failed: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const article = mapNewsItem(
+          payload?.data?.news ?? payload?.data ?? payload?.news ?? payload,
+        );
+        setFetchedSummary(newsSummary(article));
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Article preview API error:", error);
+        }
+      }
+    };
+
+    void loadSummary();
+    return () => controller.abort();
+  }, [item.id, summary]);
+
+  if (!preview) return null;
+
+  return <p className={className}>{preview}</p>;
 }
 
 function SectionTitle({ title, href }: { title: string; href?: string }) {
@@ -57,8 +98,11 @@ function HeadlineCard({ item, large = false }: { item: NewsItem; large?: boolean
       <h3 className={`${large ? "text-[28px] sm:text-[34px]" : "text-[18px] sm:text-[21px]"} mt-1 font-black leading-[1.2] text-neutral-700 transition-colors group-hover:text-red-600 line-clamp-3`}>
         {item.title}
       </h3>
-      {large && newsSummary(item) && (
-        <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-500 sm:text-[17px]">{newsSummary(item)}</p>
+      {large && (
+        <ArticlePreview
+          item={item}
+          className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-500 sm:text-[17px]"
+        />
       )}
     </Link>
   );
@@ -318,7 +362,10 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
               <Link href={newsHref(hero)} className="group block text-left">
                 {hero.category && <span className="mb-2 block text-sm font-bold text-red-600">{hero.category}</span>}
                 <h1 className="text-[25px] font-black leading-[1.2] text-neutral-800 transition-colors group-hover:text-red-600 sm:text-[30px] lg:text-[34px]">{hero.title}</h1>
-                {newsSummary(hero) && <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-600 sm:text-[16px]">{newsSummary(hero)}</p>}
+                <ArticlePreview
+                  item={hero}
+                  className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-neutral-600 sm:text-[16px]"
+                />
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-neutral-700 transition-colors group-hover:text-red-600">বিস্তারিত পড়ুন <ArrowUpRight className="h-4 w-4" /></span>
               </Link>
             </div>
