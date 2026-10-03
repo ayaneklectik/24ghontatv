@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Copy, ExternalLink, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaXTwitter, FaYoutube } from 'react-icons/fa6';
+import { resolveShareImageUrl } from '@/lib/urls';
 import type { PublicSiteData } from '@/types/public';
 
 type SocialLinks = NonNullable<PublicSiteData['social_media']>;
@@ -38,6 +39,7 @@ export default function ArticleSocialActions({
   imageUrl?: string | null;
 }) {
   const social = useContext(PublicSocialContext);
+  const shareImageUrl = resolveShareImageUrl(imageUrl);
   const [message, setMessage] = useState('');
   const [shareError, setShareError] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -172,8 +174,18 @@ export default function ArticleSocialActions({
             </div>
             <div className="p-5">
               <div className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
-                {imageUrl && !imageUrl.includes('/images/placeholder-news.svg') && (
-                  <img src={imageUrl} alt="" className="max-h-64 w-full object-cover" />
+                {shareImageUrl && (
+                  <img
+                    src={shareImageUrl}
+                    alt={title}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="max-h-64 w-full bg-neutral-100 object-cover"
+                    onError={(event) => {
+                      event.currentTarget.hidden = true;
+                    }}
+                  />
                 )}
                 <div className="space-y-2 p-4">
                   <h3 className="line-clamp-3 text-lg font-bold text-neutral-900">{title}</h3>

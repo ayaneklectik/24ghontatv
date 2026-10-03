@@ -19,6 +19,13 @@ export function alternateMediaUrl(value: string): string | null {
   return null;
 }
 
+export function resolveShareImageUrl(value?: string | null): string | null {
+  if (!value || value.includes('/images/placeholder-news.svg')) return null;
+  const resolved = resolveMediaUrl(value, '');
+  if (!resolved) return null;
+  return alternateMediaUrl(resolved) ?? resolved;
+}
+
 export function retryAlternateMediaHost(
   image: HTMLImageElement,
   fallback = DEFAULT_MEDIA_FALLBACK,

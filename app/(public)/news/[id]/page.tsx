@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import MediaImage from '@/components/public/MediaImage';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapNewsItem, newsSummary } from '@/lib/public-data';
+import { resolveShareImageUrl } from '@/lib/urls';
 import type { NewsItem } from '@/types/public';
 import ArticleSocialActions from '@/components/public/ArticleSocialActions';
 
@@ -24,12 +25,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const description = article.excerpt || newsSummary(article, 30);
     const articleUrl = new URL(`/news/${encodeURIComponent(id)}`, siteUrl).toString();
-    const hasImage = Boolean(
-      article.imageUrl &&
-      !article.imageUrl.includes('/images/placeholder-news.svg') &&
-      article.imageUrl !== '/images/placeholder-news.svg',
-    );
-    const imageUrl = hasImage ? new URL(article.imageUrl, siteUrl).toString() : undefined;
+    const shareImageUrl = resolveShareImageUrl(article.imageUrl);
+    const imageUrl = shareImageUrl ? new URL(shareImageUrl, siteUrl).toString() : undefined;
+    const hasImage = Boolean(imageUrl);
     const images = imageUrl ? [{ url: imageUrl, alt: article.title }] : undefined;
 
     return {
