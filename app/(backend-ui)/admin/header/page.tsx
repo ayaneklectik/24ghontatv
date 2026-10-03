@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import {
-  FaHeading, FaPlus, FaTrash, FaFloppyDisk,
+import { useEffect, useState, useRef } from 'react';
+import { 
+  FaHeading, FaPlus, FaTrash, FaFloppyDisk, 
   FaRegEye, FaCloudArrowUp, FaGripVertical,
   FaArrowUp, FaArrowDown, FaMagnifyingGlass,
   FaRegCalendarDays, FaBullhorn, FaPenToSquare,
   FaLink, FaTag
 } from 'react-icons/fa6';
 import HeaderAppearanceSettings from '@/components/dashboard/HeaderAppearanceSettings';
+import { fetchAdminDisplaySettings, updateAdminDisplaySettings } from '@/lib/admin-api';
+import { formatBengaliDate, formatEnglishDate } from '@/lib/bengali';
 
 interface MenuItem {
   id: string;
@@ -36,6 +38,10 @@ export default function HeaderPage() {
   const [showTopBar, setShowTopBar] = useState(true);
   const [topNoticeText, setTopNoticeText] = useState('স্বাগতম ২৪ঘণ্টা অনলাইন নিউজ পোর্টালে');
   const [showBengaliDate, setShowBengaliDate] = useState(true);
+  const [dateSettingsLoaded, setDateSettingsLoaded] = useState(false);
+  const [savingDateSetting, setSavingDateSetting] = useState(false);
+  const [dateSettingError, setDateSettingError] = useState('');
+  const [previewDate, setPreviewDate] = useState({ english: '', bengali: '' });
 
   // Logo Branding Settings
   const [logoType, setLogoType] = useState<'text' | 'image'>('text');
@@ -56,6 +62,50 @@ export default function HeaderPage() {
   const [newUrl, setNewUrl] = useState('');
 
   const logoFileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchAdminDisplaySettings()
+      .then((settings) => {
+        if (active) setShowBengaliDate(settings.showBengaliDate ?? true);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setDateSettingError(error instanceof Error ? error.message : 'তারিখের সেটিং লোড করা যায়নি।');
+        }
+      })
+      .finally(() => {
+        if (active) setDateSettingsLoaded(true);
+      });
+
+    const today = new Date();
+    setPreviewDate({
+      english: formatEnglishDate(today),
+      bengali: formatBengaliDate(today),
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const toggleBengaliDate = async () => {
+    setSavingDateSetting(true);
+    setDateSettingError('');
+    try {
+      const settings = await fetchAdminDisplaySettings();
+      const nextShowBengaliDate = !showBengaliDate;
+      await updateAdminDisplaySettings({
+        ...settings,
+        showBengaliDate: nextShowBengaliDate,
+      });
+      setShowBengaliDate(nextShowBengaliDate);
+    } catch (error) {
+      setDateSettingError(error instanceof Error ? error.message : 'তারিখের সেটিং সংরক্ষণ করা যায়নি।');
+    } finally {
+      setSavingDateSetting(false);
+    }
+  };
 
   // Active Selected Item Object
   const activeItem = menuItems.find((m) => m.id === selectedItemId) || menuItems[0];
@@ -124,7 +174,7 @@ export default function HeaderPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <HeaderAppearanceSettings />
+      <HeaderAppearanceSettings showBengaliDate={showBengaliDate} />
 
       {/* Header Bar */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-wrap justify-between items-center gap-4">
@@ -147,10 +197,10 @@ export default function HeaderPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
+        
         {/* LEFT PANEL: Top Bar & Branding Config (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-
+          
           {/* Top Utility Bar Controls */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
             <div className="flex justify-between items-center border-b pb-2">
@@ -185,14 +235,18 @@ export default function HeaderPage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setShowBengaliDate(!showBengaliDate)}
+                  onClick={() => void toggleBengaliDate()}
+                  disabled={!dateSettingsLoaded || savingDateSetting}
                   className={`text-[10px] font-bold px-2 py-1 rounded transition ${
                     showBengaliDate ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}
+                  } disabled:cursor-wait disabled:opacity-50`}
                 >
-                  {showBengaliDate ? 'বাংলা তারিখ' : 'English Date'}
+                  {savingDateSetting ? 'সংরক্ষণ হচ্ছে…' : showBengaliDate ? 'বাংলা তারিখ' : 'English Date'}
                 </button>
               </div>
+              {dateSettingError && (
+                <p role="alert" className="text-xs text-red-600">{dateSettingError}</p>
+              )}
             </div>
           </div>
 
@@ -305,7 +359,7 @@ export default function HeaderPage() {
 
         {/* MIDDLE PANEL: Navigation Menu Item Selector & Stack (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-
+          
           {/* Add Menu Link */}
           <form onSubmit={handleAddMenuItem} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider border-b pb-2">
@@ -399,7 +453,7 @@ export default function HeaderPage() {
 
         {/* RIGHT PANEL: Active Menu Item Edit Form & Live Preview (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-
+          
           {/* Active Item Edit Form */}
           {activeItem && (
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -484,7 +538,7 @@ export default function HeaderPage() {
             {showTopBar && (
               <div className="bg-gray-100 border-b border-gray-200 px-3 py-1.5 flex justify-between items-center text-[10px] text-gray-600">
                 <span className="truncate max-w-[200px]">{topNoticeText}</span>
-                <span className="shrink-0">{showBengaliDate ? 'বুধবার, ৫ আগস্ট' : 'Aug 5, 2026'}</span>
+                <span className="shrink-0">{showBengaliDate ? previewDate.bengali : previewDate.english}</span>
               </div>
             )}
 
