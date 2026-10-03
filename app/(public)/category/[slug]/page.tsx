@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapCategory, mapNewsItem } from '@/lib/public-data';
 import type { CategoryItem, NewsItem } from '@/types/public';
+import MediaImage from '@/components/public/MediaImage';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -28,7 +29,7 @@ function Card({ item }: { item: NewsItem }) {
     <article className="border-b border-neutral-200 pb-6">
       <Link href={`/news/${item.id}`} className="group grid grid-cols-1 sm:grid-cols-5 gap-4">
         <div className="sm:col-span-2 aspect-[16/10] overflow-hidden rounded bg-neutral-100">
-          {item.imageUrl ? <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform" /> : <div className="w-full h-full bg-neutral-200" />}
+          {item.imageUrl ? <MediaImage src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform" /> : <div className="w-full h-full bg-neutral-200" />}
         </div>
         <div className="sm:col-span-3">
           <h2 className="text-xl md:text-2xl font-black leading-snug text-neutral-900 group-hover:text-red-600">{item.title}</h2>
