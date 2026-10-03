@@ -1,5 +1,7 @@
 
 import { resolveArticleContentImages, resolveMediaUrl } from '@/lib/urls';
+import type { BreakingTickerSettings, HeaderAppearanceSettings } from '@/types/public';
+import { resolveHeaderBackgroundUrl } from '@/lib/site-display';
 
 function resolveAdminMediaUrl(value?: string | null): string | null {
   if (!value) return null;
@@ -46,7 +48,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
   });
 
-  const payload = await response.json().catch(() => null);
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    if (response.ok) {
+      throw new Error(
+        `The configured backend returned a web page instead of JSON for "${path}". The Laravel API route may not be deployed or may be redirecting to a not-found page.`,
+      );
+    }
+    throw new Error(`The backend returned a non-JSON response for "${path}" (HTTP ${response.status}).`);
+  }
+
+  const payload = await response.json().catch(() => {
+    throw new Error(`The backend returned invalid JSON for "${path}".`);
+  });
   if (!response.ok) {
     throw new Error(payload?.message || payload?.error || `Request failed: ${response.status}`);
   }
@@ -55,15 +69,25 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export function mapAdminNews(item: any): AdminNews {
+  const image = [
+    item?.imageUrl,
+    item?.image_url,
+    item?.featuredImg,
+    item?.featured_image,
+    item?.image_path,
+    item?.image,
+  ].find((value) => typeof value === 'string' && value.trim());
+  const imagePath = image && !String(image).includes('/')
+    ? `images/news_img/${image}`
+    : image;
+
   return {
     id: String(item?.id ?? ''),
     title: item?.news_title ?? item?.title ?? '',
     slug: item?.title_link ?? item?.slug ?? item?.id ?? '',
     excerpt: item?.news_sub_title ?? item?.excerpt ?? '',
     content: resolveArticleContentImages(item?.dis ?? item?.content ?? ''),
-    imageUrl: resolveAdminMediaUrl(
-      item?.imageUrl ?? item?.image_url ?? (item?.image ? `images/news_img/${item.image}` : null),
-    ),
+    imageUrl: resolveAdminMediaUrl(imagePath),
     status: Number(item?.status ?? 0),
     views: Number(item?.hit ?? item?.views ?? 0),
     createdAt: item?.created_at ?? item?.createdAt,
@@ -94,6 +118,8 @@ export async function fetchAdminNews(params: {
   search?: string;
   categoryId?: string;
   status?: number;
+  fromDate?: string;
+  toDate?: string;
 } = {}) {
   const q = new URLSearchParams();
   q.set('per_page', String(params.perPage ?? 100));
@@ -101,6 +127,8 @@ export async function fetchAdminNews(params: {
   if (params.search) q.set('search', params.search);
   if (params.categoryId) q.set('category_id', params.categoryId);
   if (typeof params.status === 'number') q.set('status', String(params.status));
+  if (params.fromDate) q.set('from_date', params.fromDate);
+  if (params.toDate) q.set('to_date', params.toDate);
 
   const payload = await request<any>(`/news?${q.toString()}`);
   const paginator = payload?.data ?? {};
@@ -127,7 +155,7 @@ export async function uploadNewsEditorImage(file: File): Promise<string> {
     payload?.data?.url ??
     payload?.data?.imageUrl ??
     payload?.data?.image_url;
-  const resolvedUrl = typeof imageUrl === 'string' ? resolveAdminMediaUrl(imageUrl) : null;
+  const resolvedUrl = typeof imageUrl === 'string' ? resolveHeaderBackgroundUrl(imageUrl) : null;
 
   if (!resolvedUrl) {
     throw new Error('The image upload did not return a usable image URL.');
@@ -261,4 +289,52 @@ export async function setNewsPublish(id: string | number, publish: boolean) {
 
 export async function adminRequest<T = unknown>(path: string, init: RequestInit = {}) {
   return request<T>(path, init);
+}
+
+export type AdminDisplaySettings = {
+  breakingTicker: BreakingTickerSettings;
+  headerAppearance: HeaderAppearanceSettings;
+};
+
+export async function fetchAdminDisplaySettings(): Promise<AdminDisplaySettings> {
+  const payload = await request<any>('/site-display-settings');
+  const settings = payload?.data ?? payload;
+  if (!settings?.breakingTicker || !settings?.headerAppearance) {
+    throw new Error('The backend response is missing breaking ticker or header appearance settings. Deploy the Laravel display-settings API route and controller.');
+  }
+  return settings as AdminDisplaySettings;
+}
+
+export async function updateAdminDisplaySettings(settings: AdminDisplaySettings) {
+  return request('/site-display-settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  });
+}
+
+export async function uploadHeaderBackground(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('background_image', file);
+  const payload = await request<any>('/site-display-settings/background-image', {
+    method: 'POST',
+    body: formData,
+  });
+  const imageUrl = payload?.data?.backgroundImageUrl ?? payload?.backgroundImageUrl;
+  const resolvedUrl = typeof imageUrl === 'string' ? resolveAdminMediaUrl(imageUrl) : null;
+  if (!resolvedUrl) throw new Error('The header background upload did not return a usable image URL.');
+  return resolvedUrl;
+}
+
+export async function uploadHeaderLogo(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('logo_image', file);
+  const payload = await request<any>('/site-display-settings/logo-image', {
+    method: 'POST',
+    body: formData,
+  });
+  const imageUrl = payload?.data?.logoImageUrl ?? payload?.logoImageUrl;
+  const resolvedUrl = typeof imageUrl === 'string' ? resolveHeaderBackgroundUrl(imageUrl) : null;
+  if (!resolvedUrl) throw new Error('The header logo upload did not return a usable image URL.');
+  return resolvedUrl;
 }

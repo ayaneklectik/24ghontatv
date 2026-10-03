@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { 
-  FaHeading, FaPlus, FaTrash, FaFloppyDisk, 
+import {
+  FaHeading, FaPlus, FaTrash, FaFloppyDisk,
   FaRegEye, FaCloudArrowUp, FaGripVertical,
   FaArrowUp, FaArrowDown, FaMagnifyingGlass,
   FaRegCalendarDays, FaBullhorn, FaPenToSquare,
   FaLink, FaTag
 } from 'react-icons/fa6';
+import HeaderAppearanceSettings from '@/components/dashboard/HeaderAppearanceSettings';
 
 interface MenuItem {
   id: string;
@@ -123,6 +124,8 @@ export default function HeaderPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <HeaderAppearanceSettings />
+
       {/* Header Bar */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-wrap justify-between items-center gap-4">
         <div>
@@ -135,18 +138,19 @@ export default function HeaderPage() {
         </div>
 
         <button
-          onClick={() => alert('Header and Navigation Settings Saved!')}
+          type="submit"
+          form="header-appearance-form"
           className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2"
         >
-          <FaFloppyDisk /> Save Header Settings
+          <FaFloppyDisk /> Save Header Design
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* LEFT PANEL: Top Bar & Branding Config (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-          
+
           {/* Top Utility Bar Controls */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
             <div className="flex justify-between items-center border-b pb-2">
@@ -301,7 +305,7 @@ export default function HeaderPage() {
 
         {/* MIDDLE PANEL: Navigation Menu Item Selector & Stack (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-          
+
           {/* Add Menu Link */}
           <form onSubmit={handleAddMenuItem} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider border-b pb-2">
@@ -395,7 +399,7 @@ export default function HeaderPage() {
 
         {/* RIGHT PANEL: Active Menu Item Edit Form & Live Preview (4 Columns) */}
         <div className="lg:col-span-4 space-y-4">
-          
+
           {/* Active Item Edit Form */}
           {activeItem && (
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">

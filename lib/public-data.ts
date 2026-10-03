@@ -3,6 +3,8 @@ import type {
   NewsItem,
   PublicHomeData,
   PublicSiteData,
+  BreakingTickerSettings,
+  HeaderAppearanceSettings,
 } from '@/types/public';
 import {
   resolveExternalUrl,
@@ -12,8 +14,28 @@ import {
   youtubeEmbedUrl,
   youtubeThumbnailUrl,
 } from '@/lib/urls';
+import { resolveHeaderBackgroundUrl } from '@/lib/site-display';
 
 export const PLACEHOLDER_IMAGE = '/images/placeholder-news.svg';
+
+export const DEFAULT_BREAKING_TICKER: BreakingTickerSettings = {
+  enabled: false,
+  text: '',
+  bold: true,
+  textColor: '#ffffff',
+  backgroundColor: '#dc2626',
+  speedSeconds: 25,
+};
+
+export const DEFAULT_HEADER_APPEARANCE: HeaderAppearanceSettings = {
+  preset: 'classic',
+  backgroundColor: '#ffffff',
+  backgroundImageUrl: null,
+  logoImageUrl: null,
+  textColor: '#1f2937',
+  secondaryTextColor: '#6b7280',
+  backgroundBlur: 0,
+};
 
 const htmlEntities: Record<string, string> = {
   amp: '&', apos: "'", quot: '"', nbsp: ' ', lt: '<', gt: '>',
@@ -60,7 +82,8 @@ export function newsSummary(item: { excerpt?: string | null; content?: string | 
 }
 
 export function mapNewsItem(item: any): NewsItem {
-  const image = item?.image_url ?? item?.imageUrl ?? item?.image ?? item?.featuredImg;
+  const image = [item?.image_url, item?.imageUrl, item?.image, item?.featuredImg]
+    .find((value) => typeof value === 'string' && value.trim());
   const imagePath = image && !String(image).includes('/')
     ? `images/news_img/${image}`
     : image;
@@ -96,6 +119,40 @@ export function mapCategory(item: any): CategoryItem {
     name: decodeHtmlEntities(item?.name ?? item?.cat_name ?? ''),
     slug: item?.slug ?? item?.cat_slug ?? item?.cat_name ?? String(item?.id ?? ''),
     order: Number(item?.order ?? item?.cat_order ?? 0),
+  };
+}
+
+export function mapDisplaySettings(payload: any): {
+  breakingTicker: BreakingTickerSettings;
+  headerAppearance: HeaderAppearanceSettings;
+} {
+  const settings = payload?.data ?? payload ?? {};
+  const ticker = settings?.breakingTicker ?? settings?.breaking_ticker ?? {};
+  const header = settings?.headerAppearance ?? settings?.header_appearance ?? {};
+  const headerPreset = header?.preset === 'default' ? 'classic' : header?.preset;
+  const validColor = (value: unknown, fallback: string) =>
+    typeof value === 'string' && /^#[\da-f]{6}$/i.test(value) ? value : fallback;
+  const speedSeconds = Number(ticker?.speedSeconds ?? ticker?.speed_seconds);
+  const backgroundBlur = Number(header?.backgroundBlur ?? header?.background_blur);
+
+  return {
+    breakingTicker: {
+      enabled: Boolean(ticker?.enabled),
+      text: typeof ticker?.text === 'string' ? ticker.text : '',
+      bold: ticker?.bold === undefined ? DEFAULT_BREAKING_TICKER.bold : Boolean(ticker.bold),
+      textColor: validColor(ticker?.textColor ?? ticker?.text_color, DEFAULT_BREAKING_TICKER.textColor),
+      backgroundColor: validColor(ticker?.backgroundColor ?? ticker?.background_color, DEFAULT_BREAKING_TICKER.backgroundColor),
+      speedSeconds: Number.isFinite(speedSeconds) ? Math.min(200, Math.max(10, speedSeconds)) : DEFAULT_BREAKING_TICKER.speedSeconds,
+    },
+    headerAppearance: {
+      preset: typeof headerPreset === 'string' ? headerPreset : DEFAULT_HEADER_APPEARANCE.preset,
+      backgroundColor: validColor(header?.backgroundColor ?? header?.background_color, DEFAULT_HEADER_APPEARANCE.backgroundColor),
+      backgroundImageUrl: resolveHeaderBackgroundUrl(header?.backgroundImageUrl ?? header?.background_image_url),
+      logoImageUrl: resolveHeaderBackgroundUrl(header?.logoImageUrl ?? header?.logo_image_url),
+      textColor: validColor(header?.textColor ?? header?.text_color, DEFAULT_HEADER_APPEARANCE.textColor),
+      secondaryTextColor: validColor(header?.secondaryTextColor ?? header?.secondary_text_color, DEFAULT_HEADER_APPEARANCE.secondaryTextColor),
+      backgroundBlur: Number.isFinite(backgroundBlur) ? Math.min(10, Math.max(0, backgroundBlur)) : DEFAULT_HEADER_APPEARANCE.backgroundBlur,
+    },
   };
 }
 

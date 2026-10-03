@@ -1,6 +1,11 @@
+import { cache } from 'react';
+
 const REQUEST_TIMEOUT_MS = 15_000;
 
-export async function fetchLaravelPublic<T>(path: string): Promise<T> {
+export async function fetchLaravelPublic<T>(
+  path: string,
+  options: { timeoutMs?: number } = {},
+): Promise<T> {
   const base = process.env.LARAVEL_PUBLIC_API_URL;
 
   if (!base) {
@@ -8,7 +13,10 @@ export async function fetchLaravelPublic<T>(path: string): Promise<T> {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(
+    () => controller.abort(),
+    options.timeoutMs ?? REQUEST_TIMEOUT_MS,
+  );
 
   try {
     const response = await fetch(`${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`, {
@@ -37,3 +45,5 @@ export async function fetchLaravelPublic<T>(path: string): Promise<T> {
     clearTimeout(timeout);
   }
 }
+
+export const fetchLaravelHome = cache(() => fetchLaravelPublic<any>('home'));

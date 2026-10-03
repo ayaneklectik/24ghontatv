@@ -23,9 +23,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (!article.id) return {};
 
     const description = article.excerpt || newsSummary(article, 30);
-    const hasImage = Boolean(news?.image_url ?? news?.imageUrl ?? news?.image ?? news?.featuredImg);
     const articleUrl = new URL(`/news/${encodeURIComponent(id)}`, siteUrl).toString();
-    const images = hasImage ? [{ url: article.imageUrl, alt: article.title }] : undefined;
+    const hasImage = Boolean(
+      article.imageUrl &&
+      !article.imageUrl.includes('/images/placeholder-news.svg') &&
+      article.imageUrl !== '/images/placeholder-news.svg',
+    );
+    const imageUrl = hasImage ? new URL(article.imageUrl, siteUrl).toString() : undefined;
+    const images = imageUrl ? [{ url: imageUrl, alt: article.title }] : undefined;
 
     return {
       title: article.title,
@@ -43,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: hasImage ? 'summary_large_image' : 'summary',
         title: article.title,
         description,
-        images: hasImage ? [article.imageUrl] : undefined,
+        images: imageUrl ? [imageUrl] : undefined,
       },
     };
   } catch (error) {
@@ -84,7 +89,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
             {article.publishedAt && <span>{article.publishedAt}</span>}
             <span>দেখেছেন {article.views ?? 0} বার</span>
           </div>
-          <ArticleSocialActions title={article.title} />
+          <ArticleSocialActions title={article.title} description={article.excerpt || newsSummary(article, 30)} imageUrl={article.imageUrl} />
           {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
 
           {article.content && (

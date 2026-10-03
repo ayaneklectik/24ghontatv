@@ -1,5 +1,5 @@
 @import "tailwindcss";
- 
+
 @font-face {
   font-family: "Kalpurush";
   src: url("../fonts/kalpurush.ttf") format("truetype");
@@ -17,6 +17,8 @@
 }
 
 @theme {
+  --font-sans: "Kalpurush", sans-serif;
+  --font-serif: "Kalpurush", sans-serif;
   --font-kalpurush: "Kalpurush", sans-serif;
 }
 
@@ -73,6 +75,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
   }
 
@@ -80,6 +83,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     overflow: hidden;
   }
 }
@@ -101,4 +105,36 @@
 
 .animate-marquee-fast:hover {
   animation-play-state: paused;
+}
+
+@keyframes breakingTickerLeft {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-breaking-ticker {
+  animation: breakingTickerLeft 25s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breaking-ticker {
+    animation: none;
+    width: 100%;
+    white-space: normal;
+    transform: none;
+  }
+
+  .animate-breaking-ticker > span:first-child {
+    padding: 0 0.75rem;
+    white-space: normal;
+  }
+
+  .animate-breaking-ticker > span:nth-child(2) {
+    display: none;
+  }
 }

@@ -57,6 +57,27 @@ export interface PublicSiteData {
     live_title?: string | null;
     status?: number | boolean | null;
   } | null;
+  breaking_ticker?: BreakingTickerSettings;
+  header_appearance?: HeaderAppearanceSettings;
+}
+
+export interface BreakingTickerSettings {
+  enabled: boolean;
+  text: string;
+  bold: boolean;
+  textColor: string;
+  backgroundColor: string;
+  speedSeconds: number;
+}
+
+export interface HeaderAppearanceSettings {
+  preset: string;
+  backgroundColor: string;
+  backgroundImageUrl?: string | null;
+  logoImageUrl?: string | null;
+  textColor: string;
+  secondaryTextColor: string;
+  backgroundBlur: number;
 }
 
 export interface PublicHomeData {
