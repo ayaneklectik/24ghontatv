@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Copy, ExternalLink, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaXTwitter, FaYoutube } from 'react-icons/fa6';
-import { resolveShareImageUrl } from '@/lib/urls';
+import { resolveShareImageUrl, retryAlternateMediaHost } from '@/lib/urls';
 import type { PublicSiteData } from '@/types/public';
 
 type SocialLinks = NonNullable<PublicSiteData['social_media']>;
@@ -183,7 +183,9 @@ export default function ArticleSocialActions({
                     decoding="async"
                     className="max-h-64 w-full bg-neutral-100 object-cover"
                     onError={(event) => {
-                      event.currentTarget.hidden = true;
+                      if (!retryAlternateMediaHost(event.currentTarget, null)) {
+                        event.currentTarget.hidden = true;
+                      }
                     }}
                   />
                 )}

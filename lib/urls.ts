@@ -41,21 +41,24 @@ export function resolveShareImageUrl(value?: string | null): string | null {
 
 export function retryAlternateMediaHost(
   image: HTMLImageElement,
-  fallback = DEFAULT_MEDIA_FALLBACK,
-): void {
+  fallback: string | null = DEFAULT_MEDIA_FALLBACK,
+): boolean {
   if (image.dataset.alternateMediaTried !== 'true') {
     const alternate = alternateMediaUrl(image.currentSrc || image.src);
     if (alternate) {
       image.dataset.alternateMediaTried = 'true';
       image.src = alternate;
-      return;
+      return true;
     }
   }
 
-  if (image.dataset.mediaFallbackTried !== 'true' && image.src !== fallback) {
+  if (fallback && image.dataset.mediaFallbackTried !== 'true' && image.src !== fallback) {
     image.dataset.mediaFallbackTried = 'true';
     image.src = fallback;
+    return true;
   }
+
+  return false;
 }
 
 function cleanPath(value: string): string {

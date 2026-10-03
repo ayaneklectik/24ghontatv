@@ -11,6 +11,6 @@ export default async function HomePage() {
     return <DynamicHome home={home} />;
   } catch (error) {
     console.error('Home API error:', error);
-    return <main className="py-20 text-center font-kalpurush text-neutral-500">ডাটাবেস/API সংযোগ পাওয়া যাচ্ছে না। Laravel API চালু আছে কি না যাচাই করুন।</main>;
+    return <main className="py-20 text-center font-kalpurush text-neutral-500">সংবাদ তথ্য পাওয়া যাচ্ছে না। Laravel API এবং ডাটাবেস সংযোগ যাচাই করুন।</main>;
   }
 }
