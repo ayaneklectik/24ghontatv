@@ -41,10 +41,10 @@ export function formatBengaliDate(date: Date): string {
     'ফাল্গুন',
     'চৈত্র',
   ];
-  let banglaYear = year - 593;
-  if (month < 3 || (month === 3 && day < 14)) banglaYear -= 1;
-
   const monthStarts = [
+    [0, 15, 9],
+    [1, 14, 10],
+    [2, 15, 11],
     [3, 14, 0],
     [4, 15, 1],
     [5, 15, 2],
@@ -54,27 +54,33 @@ export function formatBengaliDate(date: Date): string {
     [9, 16, 6],
     [10, 15, 7],
     [11, 15, 8],
-    [0, 15, 9],
-    [1, 14, 10],
-    [2, 15, 11],
   ] as const;
 
-  let monthIndex = 0;
-  let banglaDay = 1;
-  for (let index = monthStarts.length - 1; index >= 0; index -= 1) {
-    const [gregorianMonth, startDay, banglaIndex] = monthStarts[index];
-    if (month > gregorianMonth || (month === gregorianMonth && day >= startDay)) {
-      monthIndex = banglaIndex;
-      banglaDay = day - startDay + 1;
-      break;
-    }
+  const currentDate = Date.UTC(year, month, day);
+  let activeStart = new Date(Date.UTC(year - 1, 11, 15));
+  let monthIndex = 8;
+
+  for (const [gregorianMonth, startDay, banglaIndex] of monthStarts) {
+    const start = new Date(Date.UTC(year, gregorianMonth, startDay));
+    if (start.getTime() > currentDate) break;
+    activeStart = start;
+    monthIndex = banglaIndex;
   }
 
-  if (banglaDay <= 0) {
-    monthIndex = (monthIndex + 11) % 12;
-    banglaDay += 30;
+  for (const [gregorianMonth, startDay, banglaIndex] of monthStarts) {
+    const start = new Date(Date.UTC(year + 1, gregorianMonth, startDay));
+    if (start.getTime() > currentDate) break;
+    activeStart = start;
+    monthIndex = banglaIndex;
   }
 
-  const weekday = date.toLocaleDateString('bn-BD', { weekday: 'long' });
-  return `${weekday}, ${toBengaliDigits(banglaDay)} ${banglaMonths[monthIndex]} ${toBengaliDigits(banglaYear)}`;
+  const banglaDay = Math.floor((currentDate - activeStart.getTime()) / 86_400_000) + 1;
+  const activeYear = activeStart.getUTCFullYear();
+  const activeMonth = activeStart.getUTCMonth();
+  let activeBanglaYear = activeYear - 593;
+  if (activeMonth < 3 || (activeMonth === 3 && activeStart.getUTCDate() < 14)) {
+    activeBanglaYear -= 1;
+  }
+
+  return `${toBengaliDigits(banglaDay)} ${banglaMonths[monthIndex]} ${toBengaliDigits(activeBanglaYear)}`;
 }

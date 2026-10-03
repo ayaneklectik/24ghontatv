@@ -10,7 +10,11 @@ import {
 } from 'react-icons/fa6';
 import HeaderAppearanceSettings from '@/components/dashboard/HeaderAppearanceSettings';
 import { fetchAdminDisplaySettings, updateAdminDisplaySettings } from '@/lib/admin-api';
-import { formatBengaliDate, formatEnglishDate } from '@/lib/bengali';
+import {
+  formatBengaliDate,
+  formatBengaliGregorianDate,
+  formatEnglishDate,
+} from '@/lib/bengali';
 
 interface MenuItem {
   id: string;
@@ -41,7 +45,11 @@ export default function HeaderPage() {
   const [dateSettingsLoaded, setDateSettingsLoaded] = useState(false);
   const [savingDateSetting, setSavingDateSetting] = useState(false);
   const [dateSettingError, setDateSettingError] = useState('');
-  const [previewDate, setPreviewDate] = useState({ english: '', bengali: '' });
+  const [previewDate, setPreviewDate] = useState({
+    english: '',
+    bengaliGregorian: '',
+    bengaliCalendar: '',
+  });
 
   // Logo Branding Settings
   const [logoType, setLogoType] = useState<'text' | 'image'>('text');
@@ -81,7 +89,8 @@ export default function HeaderPage() {
     const today = new Date();
     setPreviewDate({
       english: formatEnglishDate(today),
-      bengali: formatBengaliDate(today),
+      bengaliGregorian: formatBengaliGregorianDate(today),
+      bengaliCalendar: formatBengaliDate(today),
     });
 
     return () => {
@@ -538,7 +547,11 @@ export default function HeaderPage() {
             {showTopBar && (
               <div className="bg-gray-100 border-b border-gray-200 px-3 py-1.5 flex justify-between items-center text-[10px] text-gray-600">
                 <span className="truncate max-w-[200px]">{topNoticeText}</span>
-                <span className="shrink-0">{showBengaliDate ? previewDate.bengali : previewDate.english}</span>
+                <span className="shrink-0 text-right">
+                  {showBengaliDate ? previewDate.bengaliGregorian : previewDate.english}
+                  <br />
+                  {previewDate.bengaliCalendar}
+                </span>
               </div>
             )}
 
