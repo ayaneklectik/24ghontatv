@@ -298,6 +298,7 @@ export async function adminRequest<T = unknown>(path: string, init: RequestInit 
 export type AdminDisplaySettings = {
   breakingTicker: BreakingTickerSettings;
   headerAppearance: HeaderAppearanceSettings;
+  showBengaliDate: boolean;
 };
 
 export async function fetchAdminDisplaySettings(): Promise<AdminDisplaySettings> {
@@ -306,7 +307,12 @@ export async function fetchAdminDisplaySettings(): Promise<AdminDisplaySettings>
   if (!settings?.breakingTicker || !settings?.headerAppearance) {
     throw new Error('The backend response is missing breaking ticker or header appearance settings. Deploy the Laravel display-settings API route and controller.');
   }
-  return settings as AdminDisplaySettings;
+  return {
+    ...settings,
+    showBengaliDate: settings.showBengaliDate === undefined
+      ? true
+      : Boolean(settings.showBengaliDate),
+  } as AdminDisplaySettings;
 }
 
 export async function updateAdminDisplaySettings(settings: AdminDisplaySettings) {
