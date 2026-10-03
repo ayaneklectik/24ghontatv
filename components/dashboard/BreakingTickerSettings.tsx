@@ -7,6 +7,7 @@ import { DEFAULT_BREAKING_TICKER, DEFAULT_HEADER_APPEARANCE } from '@/lib/public
 const defaults: AdminDisplaySettings = {
   breakingTicker: DEFAULT_BREAKING_TICKER,
   headerAppearance: DEFAULT_HEADER_APPEARANCE,
+  showBengaliDate: true,
 };
 
 export default function BreakingTickerSettings() {
