@@ -6,6 +6,7 @@ import { Play, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsItem, PublicHomeData } from "@/types/public";
 import { absoluteUrl, newsSummary } from "@/lib/public-data";
 import { resolveExternalUrl, resolveVideoUrl, retryAlternateMediaHost, youtubeThumbnailUrl } from "@/lib/urls";
+import { toBengaliDigits } from "@/lib/bengali";
 import SpecialFeatureGrid from "@/components/SpecialFeatureGrid";
 
 function newsHref(item: NewsItem) {
@@ -101,7 +102,7 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
         <div className="divide-y divide-neutral-200 lg:col-span-4">
           {list.slice(1, 6).map((item, index) => (
             <Link key={item.id} href={newsHref(item)} className="group grid grid-cols-[40px_96px_1fr] gap-3 py-4 first:pt-0 last:pb-0">
-              <span className="text-[30px] font-black leading-none text-neutral-300 group-hover:text-red-600">{index + 2}</span>
+              <span className="text-[30px] font-black leading-none text-neutral-300 group-hover:text-red-600">{toBengaliDigits(index + 2)}</span>
               <div className="aspect-[4/3] overflow-hidden rounded bg-neutral-100">
                 <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
               </div>
@@ -385,4 +386,3 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
     </main>
   );
 }
-
