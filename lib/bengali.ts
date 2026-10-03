@@ -5,7 +5,17 @@ export function toBengaliDigits(value: number | string): string {
 }
 
 export function formatEnglishDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+  const formatted = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  return toBengaliDigits(formatted);
+}
+
+export function formatBengaliGregorianDate(date: Date): string {
+  return date.toLocaleDateString('bn-BD', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

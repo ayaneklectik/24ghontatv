@@ -12,7 +12,7 @@ import {
 } from "react-icons/fa6";
 import { BookOpenText, Search } from "lucide-react";
 import { getHeaderBackgroundStyle } from "@/lib/site-display";
-import { formatBengaliDate, formatEnglishDate } from "@/lib/bengali";
+import { formatBengaliDate, formatBengaliGregorianDate, formatEnglishDate } from "@/lib/bengali";
 import { DEFAULT_BREAKING_TICKER, DEFAULT_HEADER_APPEARANCE, mapDisplaySettings } from "@/lib/public-data";
 import type {
   BreakingTickerSettings,
@@ -45,7 +45,7 @@ export default function Header({
   showBengaliDate?: boolean;
 }) {
   const pathname = usePathname();
-  const [dateStr, setDateStr] = useState({ engDate: "", bgDate: "" });
+  const [dateStr, setDateStr] = useState({ engDate: "", bgGregorianDate: "", bgDate: "" });
   const [readingMode, setReadingMode] = useState(false);
   const [liveDisplaySettings, setLiveDisplaySettings] = useState({
     breakingTicker: breakingTicker ?? DEFAULT_BREAKING_TICKER,
@@ -106,6 +106,7 @@ export default function Header({
     const today = new Date();
     setDateStr({
       engDate: formatEnglishDate(today),
+      bgGregorianDate: formatBengaliGregorianDate(today),
       bgDate: formatBengaliDate(today),
     });
   }, []);
@@ -193,7 +194,12 @@ export default function Header({
           title="গুগল ক্যালেন্ডার"
         >
           <p className="text-xs font-bold sm:text-sm" style={{ color: appearance.textColor }}>
-            {liveDisplaySettings.showBengaliDate ? dateStr.bgDate : dateStr.engDate || "লোড হচ্ছে..."}
+            {liveDisplaySettings.showBengaliDate
+              ? dateStr.bgGregorianDate || "লোড হচ্ছে..."
+              : dateStr.engDate || "লোড হচ্ছে..."}
+          </p>
+          <p className="mt-0.5 text-[11px] font-semibold sm:text-xs" style={{ color: appearance.secondaryTextColor }}>
+            {dateStr.bgDate}
           </p>
         </a>
 
