@@ -84,6 +84,8 @@ export function newsSummary(item: { excerpt?: string | null; content?: string | 
 export function mapNewsItem(item: any): NewsItem {
   const image = [item?.image_url, item?.imageUrl, item?.image, item?.featuredImg]
     .find((value) => typeof value === 'string' && value.trim());
+  const excerpt = [item?.excerpt, item?.news_sub_title, item?.summary]
+    .find((value) => typeof value === 'string' && value.trim());
   const imagePath = image && !String(image).includes('/')
     ? `images/news_img/${image}`
     : image;
@@ -92,7 +94,7 @@ export function mapNewsItem(item: any): NewsItem {
     id: String(item?.id ?? item?.news_id ?? ''),
     title: decodeHtmlEntities(item?.title ?? item?.news_title ?? ''),
     slug: String(item?.slug ?? item?.title_link ?? item?.id ?? ''),
-    excerpt: decodeHtmlEntities(item?.excerpt ?? item?.news_sub_title ?? ''),
+    excerpt: decodeHtmlEntities(excerpt ?? ''),
     content: resolveArticleContentImages(item?.content ?? item?.dis ?? ''),
     imageUrl: absoluteUrl(imagePath),
     publishedAt: item?.publishedAt ?? [item?.published_date, item?.published_time].filter(Boolean).join(' '),

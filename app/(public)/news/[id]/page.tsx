@@ -76,8 +76,8 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
   return (
     <main className="w-full bg-white font-kalpurush text-neutral-800">
-      <div className="max-w-[1440px] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <article className="lg:col-span-8">
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-12">
+        <article className="min-w-0 lg:col-span-8">
           <div className="text-sm font-bold text-red-600 mb-3">{article.category || 'সংবাদ'}</div>
           <h1 className="text-3xl md:text-5xl font-black leading-tight text-neutral-900">{article.title}</h1>
           {article.excerpt && <p className="mt-5 text-lg md:text-xl text-neutral-500 leading-relaxed border-l-4 border-red-500 pl-4">{article.excerpt}</p>}
@@ -91,21 +91,24 @@ export default async function NewsDetailPage({ params }: PageProps) {
           {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
 
           {article.content && (
-            <div className="prose prose-lg max-w-none mt-8 leading-relaxed text-neutral-800" dangerouslySetInnerHTML={{ __html: article.content }} />
+            <div
+              className="prose prose-lg mt-8 max-w-full overflow-x-auto leading-relaxed text-neutral-800 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
           )}
 
           {tags.length > 0 && <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-neutral-200">{tags.map((tag) => <span key={tag} className="px-3 py-1.5 rounded-full bg-neutral-100 text-sm font-bold">#{tag}</span>)}</div>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-            {previousNews && previousNews.id !== article.id && <Link href={`/news/${previousNews.id}`} className="border rounded-xl p-4 hover:border-red-300"><span className="text-xs text-neutral-400">পূর্ববর্তী</span><div className="font-black mt-1 line-clamp-2">{previousNews.title}</div></Link>}
-            {nextNews && nextNews.id !== article.id && <Link href={`/news/${nextNews.id}`} className="border rounded-xl p-4 hover:border-red-300 text-right"><span className="text-xs text-neutral-400">পরবর্তী</span><div className="font-black mt-1 line-clamp-2">{nextNews.title}</div></Link>}
+          <div className="mt-8 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            {previousNews && previousNews.id !== article.id && <Link href={`/news/${previousNews.id}`} className="block min-w-0 rounded-xl border p-4 hover:border-red-300"><span className="text-xs text-neutral-400">পূর্ববর্তী</span><div className="mt-1 line-clamp-2 break-words font-black">{previousNews.title}</div></Link>}
+            {nextNews && nextNews.id !== article.id && <Link href={`/news/${nextNews.id}`} className="block min-w-0 rounded-xl border p-4 text-right hover:border-red-300"><span className="text-xs text-neutral-400">পরবর্তী</span><div className="mt-1 line-clamp-2 break-words font-black">{nextNews.title}</div></Link>}
           </div>
         </article>
 
-        <aside className="lg:col-span-4 lg:border-l lg:border-neutral-200 lg:pl-6">
+        <aside className="min-w-0 lg:col-span-4 lg:border-l lg:border-neutral-200 lg:pl-6">
           <div className="flex items-center gap-3 border-b-2 border-neutral-200 pb-3 mb-5"><h2 className="text-2xl font-black">আরও সংবাদ</h2><span className="text-red-600 font-black">❯</span></div>
           <div className="space-y-5">
-            {related.map((item) => <Link key={item.id} href={`/news/${item.id}`} className="group grid grid-cols-3 gap-3 border-b border-neutral-200 pb-4"><div className="aspect-[4/3] bg-neutral-100 rounded overflow-hidden">{item.imageUrl && <MediaImage src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />}</div><div className="col-span-2"><h3 className="font-bold leading-snug group-hover:text-red-600 line-clamp-3">{item.title}</h3><p className="text-xs text-neutral-400 mt-2">{item.publishedAt || ''}</p></div></Link>)}
+            {related.map((item) => <Link key={item.id} href={`/news/${item.id}`} className="group grid min-w-0 grid-cols-3 gap-3 border-b border-neutral-200 pb-4"><div className="aspect-[4/3] min-w-0 overflow-hidden rounded bg-neutral-100">{item.imageUrl && <MediaImage src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />}</div><div className="col-span-2 min-w-0"><h3 className="line-clamp-3 break-words font-bold leading-snug group-hover:text-red-600">{item.title}</h3><p className="mt-2 text-xs text-neutral-400">{item.publishedAt || ''}</p></div></Link>)}
           </div>
         </aside>
       </div>

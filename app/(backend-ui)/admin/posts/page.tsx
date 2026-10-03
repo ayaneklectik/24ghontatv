@@ -499,7 +499,7 @@ export default function ManagePostsPage() {
                       {/* Actions */}
                       <td className="p-4 text-right space-x-2">
                         <Link
-                          href={`/news/${post.slug}`}
+                          href={`/news/${encodeURIComponent(post.id)}`}
                           target="_blank"
                           title="View Story"
                           className="inline-block p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"

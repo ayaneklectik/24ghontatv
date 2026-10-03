@@ -1,5 +1,6 @@
 
 import { resolveArticleContentImages, resolveMediaUrl } from '@/lib/urls';
+import { newsSummary } from '@/lib/public-data';
 import type { BreakingTickerSettings, HeaderAppearanceSettings } from '@/types/public';
 import { resolveHeaderBackgroundUrl } from '@/lib/site-display';
 
@@ -77,6 +78,9 @@ export function mapAdminNews(item: any): AdminNews {
     item?.image_path,
     item?.image,
   ].find((value) => typeof value === 'string' && value.trim());
+  const excerpt = [item?.news_sub_title, item?.excerpt, item?.summary]
+    .find((value) => typeof value === 'string' && value.trim());
+  const content = resolveArticleContentImages(item?.dis ?? item?.content ?? '');
   const imagePath = image && !String(image).includes('/')
     ? `images/news_img/${image}`
     : image;
@@ -85,8 +89,8 @@ export function mapAdminNews(item: any): AdminNews {
     id: String(item?.id ?? ''),
     title: item?.news_title ?? item?.title ?? '',
     slug: item?.title_link ?? item?.slug ?? item?.id ?? '',
-    excerpt: item?.news_sub_title ?? item?.excerpt ?? '',
-    content: resolveArticleContentImages(item?.dis ?? item?.content ?? ''),
+    excerpt: excerpt ?? newsSummary({ content }, 30),
+    content,
     imageUrl: resolveAdminMediaUrl(imagePath),
     status: Number(item?.status ?? 0),
     views: Number(item?.hit ?? item?.views ?? 0),

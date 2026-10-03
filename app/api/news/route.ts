@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         id: String(item.id),
         title: item.news_title,
         slug: item.title_link,
-        excerpt: item.news_sub_title ?? '',
+        excerpt: item.news_sub_title || item.excerpt || item.summary || '',
         content: item.dis ?? '',
         featuredImg: item.image_url ?? item.image ?? null,
         status: Number(item.status) === 1 ? 'PUBLISHED' : 'DRAFT',
