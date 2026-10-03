@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { adminRequest, fetchAdminUsers } from '@/lib/admin-api';
-import { resolveMediaUrl } from '@/lib/urls';
+import { resolveMediaUrl, retryAlternateMediaHost } from '@/lib/urls';
 import { FaBan, FaMagnifyingGlass, FaTrash, FaUserPlus, FaUsers } from 'react-icons/fa6';
 
 type UserStatus = 'ACTIVE' | 'SUSPENDED';
@@ -19,7 +19,7 @@ interface UserMember {
   photoUrl: string | null;
 }
 
-const fallbackAvatar = '/images/male.jpg';
+const fallbackAvatar = '/images/placeholder-news.svg';
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 function mapUser(user: any): UserMember {
@@ -300,7 +300,7 @@ export default function UserManagementPage() {
                       src={user.photoUrl || fallbackAvatar}
                       alt=""
                       className="h-11 w-11 shrink-0 rounded-full border bg-gray-100 object-cover"
-                      onError={(event) => { event.currentTarget.src = fallbackAvatar; }}
+                      onError={(event) => retryAlternateMediaHost(event.currentTarget, fallbackAvatar)}
                     />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-bold text-gray-900">{user.name}</span>
@@ -391,7 +391,7 @@ export default function UserManagementPage() {
                   src={selectedUser.photoUrl || fallbackAvatar}
                   alt=""
                   className="h-14 w-14 rounded-full border bg-gray-100 object-cover"
-                  onError={(event) => { event.currentTarget.src = fallbackAvatar; }}
+                  onError={(event) => retryAlternateMediaHost(event.currentTarget, fallbackAvatar)}
                 />
                 <div className="min-w-0">
                   <p className="truncate font-bold text-gray-900">{selectedUser.name}</p>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminRequest } from '@/lib/admin-api';
-import { resolveMediaUrl } from '@/lib/urls';
+import { resolveMediaUrl, retryAlternateMediaHost } from '@/lib/urls';
 
 type AccountSection = 'profile' | 'avatar' | 'password';
 
@@ -257,7 +257,16 @@ export default function AccountSettings({ section }: { section: AccountSection }
             <form onSubmit={saveAvatar} className="space-y-5">
               <div className="flex items-center gap-4">
                 {imagePreview || avatarUrl ? (
-                  <img src={imagePreview ?? avatarUrl ?? undefined} alt="Account avatar preview" className="h-20 w-20 rounded-full border border-gray-200 bg-gray-50 object-cover" />
+                  <img
+                    src={imagePreview ?? avatarUrl ?? undefined}
+                    alt="Account avatar preview"
+                    className="h-20 w-20 rounded-full border border-gray-200 bg-gray-50 object-cover"
+                    onError={(event) => {
+                      if (!imagePreview) {
+                        retryAlternateMediaHost(event.currentTarget);
+                      }
+                    }}
+                  />
                 ) : (
                   <div aria-label="Account avatar placeholder" className="flex h-20 w-20 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-2xl font-semibold text-gray-600">
                     {profile.name.trim().charAt(0).toUpperCase() || '?'}
