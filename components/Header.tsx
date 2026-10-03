@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa6";
 import { BookOpenText, Search } from "lucide-react";
 import { getHeaderBackgroundStyle } from "@/lib/site-display";
+import { formatBengaliDate, formatEnglishDate } from "@/lib/bengali";
 import { DEFAULT_BREAKING_TICKER, DEFAULT_HEADER_APPEARANCE, mapDisplaySettings } from "@/lib/public-data";
 import type {
   BreakingTickerSettings,
@@ -20,65 +21,6 @@ import type {
   NewsItem,
   PublicSiteData,
 } from "@/types/public";
-
-function toBengaliDigits(value: number | string) {
-  return String(value).replace(/\d/g, (digit) => "০১২৩৪৫৬৭৮৯"[Number(digit)]);
-}
-
-function getOfficialBengaliDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-  const banglaMonths = [
-    "বৈশাখ",
-    "জ্যৈষ্ঠ",
-    "আষাঢ়",
-    "শ্রাবণ",
-    "ভাদ্র",
-    "আশ্বিন",
-    "কার্তিক",
-    "অগ্রহায়ণ",
-    "পৌষ",
-    "মাঘ",
-    "ফাল্গুন",
-    "চৈত্র",
-  ];
-  let bgYear = year - 593;
-  if (month < 3 || (month === 3 && day < 14)) bgYear -= 1;
-
-  const monthStarts = [
-    [3, 14, 0],
-    [4, 15, 1],
-    [5, 15, 2],
-    [6, 16, 3],
-    [7, 16, 4],
-    [8, 16, 5],
-    [9, 16, 6],
-    [10, 15, 7],
-    [11, 15, 8],
-    [0, 15, 9],
-    [1, 14, 10],
-    [2, 15, 11],
-  ] as const;
-
-  let monthIndex = 0;
-  let bgDay = 1;
-  for (let index = monthStarts.length - 1; index >= 0; index -= 1) {
-    const [gregorianMonth, startDay, banglaIndex] = monthStarts[index];
-    if (month > gregorianMonth || (month === gregorianMonth && day >= startDay)) {
-      monthIndex = banglaIndex;
-      bgDay = day - startDay + 1;
-      break;
-    }
-  }
-
-  if (bgDay <= 0) {
-    monthIndex = (monthIndex + 11) % 12;
-    bgDay += 30;
-  }
-
-  return `${toBengaliDigits(bgDay)} ${banglaMonths[monthIndex]} ${toBengaliDigits(bgYear)}`;
-}
 
 function normalizeWhatsApp(contact?: string | null) {
   const digits = String(contact ?? "").replace(/\D/g, "");
@@ -92,6 +34,7 @@ export default function Header({
   justNow = [],
   breakingTicker,
   headerAppearance,
+  showBengaliDate = true,
 }: {
   site: PublicSiteData;
   categories: CategoryItem[];
@@ -99,6 +42,7 @@ export default function Header({
   justNow?: Array<{ id: string; title: string; url: string }>;
   breakingTicker?: BreakingTickerSettings;
   headerAppearance?: HeaderAppearanceSettings;
+  showBengaliDate?: boolean;
 }) {
   const pathname = usePathname();
   const [dateStr, setDateStr] = useState({ engDate: "", bgDate: "" });
@@ -106,6 +50,7 @@ export default function Header({
   const [liveDisplaySettings, setLiveDisplaySettings] = useState({
     breakingTicker: breakingTicker ?? DEFAULT_BREAKING_TICKER,
     headerAppearance: headerAppearance ?? DEFAULT_HEADER_APPEARANCE,
+    showBengaliDate,
   });
 
   useEffect(() => {
@@ -160,13 +105,8 @@ export default function Header({
   useEffect(() => {
     const today = new Date();
     setDateStr({
-      engDate: today.toLocaleDateString("bn-BD", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      bgDate: getOfficialBengaliDate(today),
+      engDate: formatEnglishDate(today),
+      bgDate: formatBengaliDate(today),
     });
   }, []);
 
@@ -252,8 +192,9 @@ export default function Header({
           className="col-span-3 row-start-2 text-center transition-colors hover:text-red-600 sm:col-span-1 sm:col-start-1 sm:row-start-1 sm:text-left"
           title="গুগল ক্যালেন্ডার"
         >
-          <p className="text-xs font-bold sm:text-sm" style={{ color: appearance.textColor }}>{dateStr.engDate || "লোড হচ্ছে..."}</p>
-          <p className="mt-0.5 text-[11px] font-semibold sm:text-xs" style={{ color: appearance.secondaryTextColor }}>{dateStr.bgDate}</p>
+          <p className="text-xs font-bold sm:text-sm" style={{ color: appearance.textColor }}>
+            {liveDisplaySettings.showBengaliDate ? dateStr.bgDate : dateStr.engDate || "লোড হচ্ছে..."}
+          </p>
         </a>
 
         <Link href="/" className="col-start-2 row-start-1 flex shrink-0 items-center" aria-label={title}>
