@@ -16,6 +16,7 @@ export default async function PublicLayout({ children }: { children: React.React
   let displaySettings = {
     breakingTicker: DEFAULT_BREAKING_TICKER,
     headerAppearance: DEFAULT_HEADER_APPEARANCE,
+    showBengaliDate: true,
   };
 
   const [homeResult, displaySettingsResult] = await Promise.allSettled([
@@ -44,6 +45,7 @@ export default async function PublicLayout({ children }: { children: React.React
         justNow={home.just_now}
         breakingTicker={displaySettings.breakingTicker}
         headerAppearance={displaySettings.headerAppearance}
+        showBengaliDate={displaySettings.showBengaliDate}
       />
       <PublicSocialProvider social={home.site.social_media ?? {}}>
         <main className="w-full flex-grow clear-both block">{children}</main>
