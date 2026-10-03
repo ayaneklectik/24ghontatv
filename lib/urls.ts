@@ -1,7 +1,11 @@
 const DEFAULT_MEDIA_FALLBACK = '/images/placeholder-news.svg';
 const DEFAULT_MEDIA_BASE_URL = 'https://24ghontatv.com';
-const API_MEDIA_HOST = 'api.24ghontatv.com';
 const LEGACY_MEDIA_HOST = '24ghontatv.com';
+const LEGACY_MEDIA_BASE_URL = 'https://24ghontatv.com/public';
+
+function legacyPublicMediaUrl(path: string, suffix = ''): string {
+  return `${LEGACY_MEDIA_BASE_URL}${path.startsWith('/') ? path : `/${path}`}${suffix}`;
+}
 
 export function alternateMediaUrl(value: string): string | null {
   try {
@@ -9,8 +13,13 @@ export function alternateMediaUrl(value: string): string | null {
     const path = url.pathname.replace(/^\/public(?=\/images\/)/i, '');
     if (!path.startsWith('/images/')) return null;
 
-    if (url.hostname === API_MEDIA_HOST || url.hostname === 'dev.24ghontatv.com') {
-      return `https://${LEGACY_MEDIA_HOST}/public${path}`;
+    if (
+      url.hostname === 'api.24ghontatv.com' ||
+      url.hostname === 'dev.24ghontatv.com' ||
+      url.hostname === LEGACY_MEDIA_HOST ||
+      url.hostname === 'www.24ghontatv.com'
+    ) {
+      return legacyPublicMediaUrl(path, url.search + url.hash);
     }
   } catch {
     return null;
@@ -61,7 +70,7 @@ function mediaBaseUrl(): string {
   if (configuredBase) {
     try {
       const hostname = new URL(configuredBase).hostname;
-      if (hostname === API_MEDIA_HOST || hostname === 'dev.24ghontatv.com') {
+      if (hostname === 'api.24ghontatv.com' || hostname === 'dev.24ghontatv.com') {
         base = DEFAULT_MEDIA_BASE_URL;
       }
     } catch {
@@ -102,7 +111,7 @@ export function resolveMediaUrl(
       if (rewriteHosts.has(parsed.hostname)) {
         const path = cleanPath(parsed.pathname);
         if (/^images\/(?:media|news_img)\//i.test(path)) {
-          return `https://${API_MEDIA_HOST}/${path}`;
+          return legacyPublicMediaUrl(path, parsed.search + parsed.hash);
         }
         const base = mediaBaseUrl();
         return base ? `${base}/${path}` : `/${path}`;
@@ -118,7 +127,7 @@ export function resolveMediaUrl(
 
   const path = cleanPath(raw);
   if (/^images\/(?:media|news_img)\//i.test(path)) {
-    return `https://${API_MEDIA_HOST}/${path}`;
+    return legacyPublicMediaUrl(path);
   }
   const base = mediaBaseUrl();
 
@@ -127,7 +136,7 @@ export function resolveMediaUrl(
 
 export function resolveArticleContentImages(content?: string | null): string {
   const trustedHosts = new Set([
-    API_MEDIA_HOST,
+    'api.24ghontatv.com',
     LEGACY_MEDIA_HOST,
     'www.24ghontatv.com',
     'dev.24ghontatv.com',
@@ -137,13 +146,13 @@ export function resolveArticleContentImages(content?: string | null): string {
     /(<img\b[^>]*?\bsrc\s*=\s*)(["'])(.*?)\2/gi,
     (attribute, prefix: string, quote: string, source: string) => {
       try {
-        const url = new URL(source, `https://${API_MEDIA_HOST}`);
+        const url = new URL(source, `https://${LEGACY_MEDIA_HOST}`);
         const path = url.pathname.replace(/^\/public(?=\/images\/media\/)/i, '');
         if (!trustedHosts.has(url.hostname) || !path.toLowerCase().startsWith('/images/media/')) {
           return attribute;
         }
 
-        return `${prefix}${quote}https://${API_MEDIA_HOST}${path}${url.search}${url.hash}${quote}`;
+        return `${prefix}${quote}${legacyPublicMediaUrl(path, url.search + url.hash)}${quote}`;
       } catch {
         return attribute;
       }
