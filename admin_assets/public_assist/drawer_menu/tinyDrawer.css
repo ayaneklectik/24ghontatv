@@ -1,0 +1,353 @@
+:root {
+  --tdm-drawer-width: 300px;
+  --tdm-drawer-width-mobile: 200px;
+  --tdm-drawer-speed: .4s;
+  --tdm-drawer-background: #e70303;
+  --tdm-backdrop-background: rgba(0,0,0,.5); }
+
+drawer-menu,
+[data-drawer-backdrop] {
+  top: 0;
+  left: 0;
+  position: fixed;
+  display: block;
+  display: none;
+  height: 100%; }
+
+[data-drawer] drawer-menu,
+[data-drawer] [data-drawer-backdrop] {
+  display: block; }
+
+drawer-menu {
+  z-index: 99999;
+  margin-left: calc(var(--tdm-drawer-width) * -1);
+  width: var(--tdm-drawer-width);
+  transition: margin-left var(--tdm-drawer-speed);
+  background: var(--tdm-drawer-background); }
+
+ 
+
+[data-drawer-backdrop] {
+  z-index: 99998;
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  background: var(--tdm-backdrop-background);
+  transition-property: opacity, visibility;
+  transition-duration: var(--tdm-drawer-speed), 0s;
+  transition-delay: 0s, var(--tdm-drawer-speed); }
+
+[data-drawer="true"] {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; }
+  [data-drawer="true"] [data-drawer-backdrop] {
+    visibility: visible;
+    opacity: 1;
+    transition-property: visibility, opacity;
+    transition-duration: 0s, var(--tdm-drawer-speed);
+    transition-delay: 0s, 0s; }
+  [data-drawer="true"] drawer-menu {
+    margin-left: 0;
+    transition: margin-left var(--tdm-drawer-speed); }
+
+[data-drawer-backdrop]:before {
+  content: '';
+  height: 2rem;
+  width: 2rem;
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-x'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+  background-size: 2rem;
+  display: block;
+  margin-top: 1rem;
+  margin-left: calc(var(--tdm-drawer-width) + 1rem);
+  opacity: .5; }
+
+  .drawer-content{
+    padding: 20px 10px 10px 40px;
+  }
+
+  .nav-cat-name{
+    padding:10px 10px;
+  }
+
+  .nav-cat-name a{
+    color: #FFF;
+    font-size: 20px;
+  }
+
+  .nav-cat-name a:hover{
+    color: #5c0303;
+  }
+
+
+
+  
+
+  .dr-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    transition: background-color 0.4s ease; 
+    z-index: 99995; /* Ensure the overlay is above other content */
+    display: none; /* Hide the overlay initially */
+}
+
+#drawer-right {
+    position: fixed;
+    top: 0;
+    right: -520px; /* Initially off-screen */
+    width: 500px;
+    height: 100%;
+    background-color: rgb(238, 237, 237); /* White background */
+    transition: right 0.4s ease; /* Transition for drawer */
+    z-index: 99999; /* Ensure drawer is above other content */
+    padding: 20px; /* Add padding */
+}
+
+#drawer-right.open {
+    right: 0; /* Slide into view */
+}
+
+.close-btn-drawer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+}
+
+.feedback-txt{
+  font-size:30px; 
+  color:#DC1F26;
+}
+
+.header-txt{
+  font-size:25px; 
+  color:#000; 
+  padding-top:15px;
+}
+
+.header-txt-1{
+  font-size:25px; 
+  color:#DC1F26; 
+  padding-top:10px;
+}
+
+.input-body{
+  padding:20px; 
+  font-size:25px;
+}
+
+.select-body{
+  padding:5px 10px; 
+  font-size:20px; 
+  height:60px;
+}
+
+.input-title{
+  font-size:22px; 
+  color:#DC1F26; 
+  padding-top:15px;
+}
+
+
+.container1 {
+  display: flex;
+  justify-content: left;
+  align-items: left;
+}
+
+.container1 label {
+  margin-right: 20px; /* Adjust spacing between radio buttons and labels */
+  font-family: Arial, sans-serif; /* Set font */
+  font-size: 20px; /* Set font size */
+  color: #333; /* Set text color */
+}
+
+.container1 input[type="radio"] {
+  appearance: none; /* Remove default appearance */
+  width: 22px; /* Set width */
+  height: 22px; /* Set height */
+  border-radius: 50%; /* Make round */
+  border: 2px solid #DC1F26; /* Set border */
+  margin-right: 5px; /* Adjust spacing */
+  outline: none; /* Remove outline */
+}
+
+.container1 input[type="radio"]:checked {
+  background-color: #DC1F26; /* Change background color when checked */
+}
+
+.container1 input[type="radio"]:checked + label {
+  color: #DC1F26; /* Change label color when checked */
+}
+
+.checkbox-container {
+display: inline-block;
+vertical-align: middle;
+}
+
+/* Hide the default checkbox */
+.checkbox-container input[type="checkbox"] {
+display: none;
+}
+
+/* Style the custom checkbox */
+.custom-checkbox {
+display: inline-block;
+width: 22px;
+height: 22px;
+background-color: #eee;
+border-radius: 3px;
+border: 1px solid #DC1F26;
+cursor: pointer;
+position: relative;
+}
+
+/* Style the custom checkbox when checked */
+.custom-checkbox::after {
+content: "";
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 10px;
+height: 10px;
+background-color: #DC1F26;
+border-radius: 50%;
+display: none;
+}
+
+/* Show the custom checkbox as checked */
+.checkbox-container input[type="checkbox"]:checked + .custom-checkbox::after {
+display: block;
+}
+
+/* Style the label text for the checkbox */
+.checkbox-label {
+vertical-align: middle;
+margin-left: 8px;
+font-family: Arial, sans-serif;
+font-size: 14px;
+color: #333;
+}
+
+  @media screen and (max-width: 450px) {
+    drawer-menu {
+      z-index: 99999;
+      margin-left: calc(var(--tdm-drawer-width-mobile) * -1);
+      width: var(--tdm-drawer-width-mobile);
+      transition: margin-left var(--tdm-drawer-speed);
+      background: var(--tdm-drawer-background); }
+
+      [data-drawer-backdrop]:before {
+        content: '';
+        height: 2rem;
+        width: 2rem;
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-x'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+        background-size: 2rem;
+        display: block;
+        margin-top: 1rem;
+        margin-left: calc(var(--tdm-drawer-width-mobile) + 1rem);
+        opacity: .5; }
+
+        .drawer-content{
+          padding: 15px 10px 10px 20px;
+        }
+
+        .nav-cat-name{
+          padding:8px 10px;
+        }
+      
+        .nav-cat-name a{
+          color: #FFF;
+          font-size: 18px;
+        }
+      
+        .nav-cat-name a:hover{
+          color: #5c0303;
+        }
+
+        #drawer-right {
+          position: fixed;
+          top: 0;
+          right: -310px; /* Initially off-screen */
+          width: 300px;
+          height: 100%;
+          background-color: rgb(238, 237, 237); /* White background */
+          transition: right 0.4s ease; /* Transition for drawer */
+          z-index: 99999; /* Ensure drawer is above other content */
+          padding: 20px; /* Add padding */
+      }
+      
+      #drawer-right.open {
+          right: 0; /* Slide into view */
+      }
+      
+      .close-btn-drawer {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 5px 10px;
+          background-color: #ccc;
+          border: none;
+          cursor: pointer;
+      }
+
+      .feedback-txt{
+        font-size:20px; 
+        color:#DC1F26;
+      }
+      
+      .header-txt{
+        font-size:15px; 
+        color:#000; 
+        padding-top:15px;
+      }
+      
+      .header-txt-1{
+        font-size:17px; 
+        color:#DC1F26; 
+        padding-top:10px;
+      }
+      
+      .input-body{
+        padding:17px; 
+        font-size:18px;
+      }
+      
+      .select-body{
+        padding:5px 10px; 
+        font-size:14px; 
+        height:40px;
+      }
+      
+      .input-title{
+        font-size:16px; 
+        color:#DC1F26; 
+        padding-top:15px;
+      }
+
+      .container1 label {
+        margin-right: 20px; /* Adjust spacing between radio buttons and labels */
+        font-family: Arial, sans-serif; /* Set font */
+        font-size: 14px; /* Set font size */
+        color: #333; /* Set text color */
+      }
+      
+      .container1 input[type="radio"] {
+        appearance: none; /* Remove default appearance */
+        width: 14px; /* Set width */
+        height: 14px; /* Set height */
+        border-radius: 50%; /* Make round */
+        border: 2px solid #DC1F26; /* Set border */
+        margin-right: 5px; /* Adjust spacing */
+        outline: none; /* Remove outline */
+      }
+      
+  }

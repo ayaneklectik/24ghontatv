@@ -1,0 +1,34 @@
+node_modules/
+.next/
+out/
+.vercel/
+vendor/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+*.log
+coverage/
+
+# Local deployment checkout and generated archive
+24ghontatv-deploy/
+edited-source-files.zip
+deploy/*.zip
+error_log
+
+# Laravel runtime data and uploaded media
+public_html/ghontatv_db.sql
+public_html/error_log
+public_html/bootstrap/cache/
+public_html/storage/framework/sessions/
+public_html/storage/logs/
+public_html/storage/*firebase-adminsdk*.json
+public_html/public/images/news_img/
+public_html/public/images/media/
+public_html/public/images/user_image/
+public_html/public/images/news_family/

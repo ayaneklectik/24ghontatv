@@ -1,0 +1,387 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\App_setting;
+use App\Models\LiveVideo;
+use App\Models\Category;
+use App\Models\NewsJustNow;
+use App\Models\NewsTable;
+use App\Models\SubCategory;
+use App\Models\Video;
+use App\Models\Epaper;
+use App\Models\SocialMedia;
+use App\Models\User;
+use App\Models\AdManager;
+use App\Models\FooterContent;
+use App\Models\Photo;
+use App\Models\NewsFamily;
+use App\Models\HideNewsScroller;
+use App\Models\TopFiveNews;
+
+use Illuminate\Support\Facades\Mail;
+use App\Mail\FeedbackMail;
+
+
+class PublicController extends Controller
+{
+  // Public Page
+  public function PublicHome()
+  {
+
+    return view('frontend.home');
+  }
+
+  public function NewsDetails($id)
+  {
+    $news = NewsTable::select('*')->where(['id' => $id, 'status' => 1])->first();
+    if ($news) {
+
+      $data['app'] = App_setting::find(1);
+      $data['media'] = SocialMedia::find(1);
+      $data['footer'] = FooterContent::find(1);
+      $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+      $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+      $data['news'] = NewsTable::find($id);
+      $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->limit(10)->get();
+      $data['remaining_categories'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->offset(10)->limit(PHP_INT_MAX)->get();
+
+      $news->update([
+        'hit' => $news->hit + 1
+      ]);
+
+      $data['cat'] = Category::select('*')->where('id', $news->cat)->first();
+      $data['sub_cat'] = SubCategory::select('*')->where('id', $news->sub_cat)->first();
+      $data['extra_cats'] = Category::select('*')->where('id', $news->extra_cat)->first();
+
+      $data['sub_cats'] = SubCategory::select('*')->where('cat_id', $news->cat)->get();
+      $data['more_news'] = NewsTable::select('*')->where('cat', $news->cat)->where('status', 1)->limit(6)->orderBy('created_at', 'DESC')->get();
+      $data['user'] = User::select('*')->where('id', $news->user)->first();
+      $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+      $nextNews = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+      if (empty($nextNews->id)) {
+        $data['nextNews'] = NewsTable::where('id',  $id)->orderBy('id')->first();
+        $nextNews = NewsTable::where('id', $id)->orderBy('id')->first();
+        $nextNewsLink = NewsTable::find($nextNews->id);
+        $data['nextNewsLink'] = $nextNewsLink->title_link;
+      } else {
+        $data['nextNews'] = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+        $nextNews = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+        $nextNewsLink = NewsTable::find($nextNews->id);
+        $data['nextNewsLink'] = $nextNewsLink->title_link;
+      }
+
+      $previousNews = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+      if (empty($previousNews->id)) {
+        $data['previousNews'] = NewsTable::where('id', $id)->orderBy('id', 'desc')->first();
+        $previousNews = NewsTable::where('id', $id)->orderBy('id', 'desc')->first();
+        $previousNewsLink = NewsTable::find($previousNews->id);
+        $data['previousNewsLink'] = $previousNewsLink->title_link;
+      } else {
+        $data['previousNews'] = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        $previousNews = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        $previousNewsLink = NewsTable::find($previousNews->id);
+        $data['previousNewsLink'] = $previousNewsLink->title_link;
+      }
+
+      return view('frontend.news_details', $data);
+    } else {
+      return redirect()->route('page-not-found');
+    }
+  }
+
+  public function NewsDetailsAdmin($id, $link)
+  {
+    $news = NewsTable::select('*')->where('id', $id)->first();
+
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['news'] = NewsTable::find($id);
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+
+    $data['cat'] = Category::select('*')->where('id', $news->cat)->first();
+    $data['sub_cat'] = SubCategory::select('*')->where('id', $news->sub_cat)->first();
+    $data['extra_cats'] = Category::select('*')->where('id', $news->extra_cat)->first();
+
+    $data['sub_cats'] = SubCategory::select('*')->where('cat_id', $news->cat)->get();
+    $data['more_news'] = NewsTable::select('*')->where('cat', $news->cat)->limit(6)->orderBy('created_at', 'DESC')->get();
+    $data['user'] = User::select('*')->where('id', $news->user)->first();
+    $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    $nextNews = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+    if (empty($nextNews->id)) {
+      $data['nextNews'] = NewsTable::where('id',  $id)->orderBy('id')->first();
+      $nextNews = NewsTable::where('id', $id)->orderBy('id')->first();
+      $nextNewsLink = NewsTable::find($nextNews->id);
+      $data['nextNewsLink'] = $nextNewsLink->title_link;
+    } else {
+      $data['nextNews'] = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+      $nextNews = NewsTable::where('id', '>', $id)->orderBy('id')->first();
+      $nextNewsLink = NewsTable::find($nextNews->id);
+      $data['nextNewsLink'] = $nextNewsLink->title_link;
+    }
+
+    $previousNews = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+    if (empty($previousNews->id)) {
+      $data['previousNews'] = NewsTable::where('id', $id)->orderBy('id', 'desc')->first();
+      $previousNews = NewsTable::where('id', $id)->orderBy('id', 'desc')->first();
+      $previousNewsLink = NewsTable::find($previousNews->id);
+      $data['previousNewsLink'] = $previousNewsLink->title_link;
+    } else {
+      $data['previousNews'] = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+      $previousNews = NewsTable::where('id', '<', $id)->orderBy('id', 'desc')->first();
+      $previousNewsLink = NewsTable::find($previousNews->id);
+      $data['previousNewsLink'] = $previousNewsLink->title_link;
+    }
+
+    return view('frontend.news_details', $data);
+  }
+
+  public function AllCategoryNews($id)
+  {
+
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['app'] = App_setting::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['all_cat_news'] = NewsTable::select('*')->where(['cat' => $id, 'status' => 1])->orderBy('created_at', 'DESC')->paginate(15);
+    $data['cat'] = Category::select('*')->where('id', $id)->first();
+    $data['sub_cats'] = SubCategory::select('*')->where('cat_id', $id)->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->inRandomOrder()->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->inRandomOrder()->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->inRandomOrder()->get();
+
+    $cat_lead_news_max_id = NewsTable::where(['cat' => $id, 'status' => 1])->orderBy('id', 'desc')->first();
+
+
+    if ($cat_lead_news_max_id) {
+      $data['cat_lead_news_1'] = NewsTable::where(['cat' => $id, 'status' => 1])
+        ->where('id', '!=', $cat_lead_news_max_id->id)
+        ->orderBy('id', 'desc')->limit(1)->get();
+    } else {
+      $data['cat_lead_news_1'] = []; // or [] if using array
+    }
+
+    $data['cat_lead_news_2'] = NewsTable::select('*')->where(['cat' => $id, 'status' => 1])->inRandomOrder()->offset(1)->limit(2)->get();
+    $data['cat_lead_news_3'] = NewsTable::select('*')->where(['cat' => $id, 'status' => 1])->inRandomOrder()->offset(3)->limit(3)->get();
+    $data['cat_lead_news_4'] = NewsTable::select('*')->where(['cat' => $id, 'status' => 1])->inRandomOrder()->offset(5)->limit(10)->get();
+    $data['populer'] = NewsTable::select('*')->where(['cat' => $id, 'status' => 1])->inRandomOrder()->limit(20)->get();
+
+    return view('frontend.all_category_news', $data);
+  }
+  
+  public function searchNews(Request $request)
+  {
+
+    $searchText = $request->get('search','');
+    // return $searchText;
+    
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['app'] = App_setting::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    
+    $data['all_cat_news'] = NewsTable::select('*')
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->where(['status' => 1])
+    ->orderBy('created_at', 'DESC')
+    ->paginate(15);
+    
+    $data['cat'] = Category::select('*')->first();
+    $data['sub_cats'] = SubCategory::select('*')->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->inRandomOrder()->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->inRandomOrder()->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->inRandomOrder()->get();
+
+    $cat_lead_news_max_id = NewsTable::where(['status' => 1])
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->orderBy('id', 'desc')->first();
+
+
+    if ($cat_lead_news_max_id) {
+      $data['cat_lead_news_1'] = NewsTable::where([ 'status' => 1])
+      ->when($searchText,function($query) use($searchText) {
+            return $query->where('news_title','like',"%{$searchText}%");
+        })
+        ->where('id', '!=', $cat_lead_news_max_id->id)
+        ->orderBy('id', 'desc')->limit(1)->get();
+    } else {
+      $data['cat_lead_news_1'] = []; // or [] if using array
+    }
+
+    $data['cat_lead_news_2'] = NewsTable::select('*')->where(['status' => 1])
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->inRandomOrder()->offset(1)->limit(2)->get();
+    $data['cat_lead_news_3'] = NewsTable::select('*')->where([ 'status' => 1])
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->inRandomOrder()->offset(3)->limit(3)->get();
+    $data['cat_lead_news_4'] = NewsTable::select('*')->where([ 'status' => 1])
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->inRandomOrder()->offset(5)->limit(10)->get();
+    $data['populer'] = NewsTable::select('*')->where(['status' => 1])
+    ->when($searchText,function($query) use($searchText) {
+        return $query->where('news_title','like',"%{$searchText}%");
+    })
+    ->inRandomOrder()->limit(20)->get();
+
+    return view('frontend.search-category-news', $data);
+  }
+
+  public function AllSubCategoryNews($id)
+  {
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['app'] = App_setting::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $sub_cats = SubCategory::select('*')->where('id', $id)->first();
+    $data['all_cat_news'] = NewsTable::select('*')->where(['sub_cat' => $id, 'status' => 1])->orderBy('created_at', 'DESC')->paginate(28);
+    $data['cat'] = Category::select('*')->where('id', $sub_cats->cat_id)->first();
+    $data['sub_cat'] = SubCategory::select('*')->where('id', $id)->first();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    return view('frontend.all_sub_category_news', $data);
+  }
+
+  public function Epaper()
+  {
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['epapers'] = Epaper::select('*')->orderBy('pub_date', 'ASC')->paginate(20);
+    $data['more_news'] = NewsTable::select('*')->where('status', 1)->limit(8)->orderBy('created_at', 'DESC')->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    return view('frontend.e_paper', $data);
+  }
+
+  public function AllVideos()
+  {
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['videos'] = Video::select('*')->orderBy('created_at', 'DESC')->paginate(24);
+    $data['more_news'] = NewsTable::select('*')->where('status', 1)->limit(8)->orderBy('created_at', 'DESC')->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+    return view('frontend.all_videos', $data);
+  }
+
+  public function AllPhotos()
+  {
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['photos'] = Photo::orderBy('created_at', 'DESC')->get();
+    $data['more_news'] = NewsTable::select('*')->where('status', 1)->limit(8)->orderBy('created_at', 'DESC')->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+    return view('frontend.all_photos', $data);
+  }
+
+  public function OurFamily()
+  {
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['members'] = NewsFamily::orderBy('created_at', 'DESC')->get();
+    $data['more_news'] = NewsTable::select('*')->where('status', 1)->limit(8)->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    return view('frontend.our_family', $data);
+  }
+
+  public function DefaultPage()
+  {
+    $data['app'] = App_setting::find(1);
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['just_now'] = NewsJustNow::select('*')->where('status', 1)->get();
+    $data['more_news'] = NewsTable::select('*')->where('status', 1)->limit(8)->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    return view('frontend.default_page', $data);
+  }
+
+  public function SendFeedback(Request $request)
+  {
+    $subject        = trim($request->input('subject'));
+    $messages        = trim($request->input('message'));
+    $user_name      = trim($request->input('user_name'));
+    $user_last_name = trim($request->input('user_last_name'));
+    $gender         = trim($request->input('gender'));
+    $email          = trim($request->input('email'));
+    $city           = trim($request->input('city'));
+    $country        = trim($request->input('country'));
+
+    $send_mail = "weurobdnews@gmail.com";
+
+    Mail::to($send_mail)->send(new FeedbackMail(
+      $subject,
+      $messages,
+      $user_name,
+      $user_last_name,
+      $gender,
+      $email,
+      $city,
+      $country,
+    ));
+
+    return redirect()->route('home')
+      ->with('massage', 'Send Your Feedback Successfully')
+      ->with('msg_type', 'success');
+  }
+
+  public function t20_category()
+  {
+    $id = 12;
+    $sub_cat = 40;
+    $data['media'] = SocialMedia::find(1);
+    $data['footer'] = FooterContent::find(1);
+    $data['app'] = App_setting::find(1);
+    $data['video_link'] = LiveVideo::select('*')->where('id', 1)->first();
+    $data['all_cat_news'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('created_at', 'DESC')->paginate(28);
+    $data['cat'] = Category::select('*')->where('id', $id)->first();
+    $data['sub_cats'] = SubCategory::select('*')->where('cat_id', $id)->get();
+    $data['nav_cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->limit(10)->get();
+    $data['remaining_categories'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->offset(10)->limit(PHP_INT_MAX)->get();
+    $data['cats'] = Category::select('*')->where('status', 1)->orderBy('cat_order', 'ASC')->get();
+
+    $data['cat_lead_news_1'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('id', 'desc')->limit(1)->get();
+    $data['cat_lead_news_2'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('id', 'desc')->offset(1)->limit(2)->get();
+    $data['cat_lead_news_3'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('id', 'desc')->offset(3)->limit(3)->get();
+    $data['cat_lead_news_4'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('id', 'desc')->offset(5)->limit(10)->get();
+    $data['populer'] = NewsTable::select('*')->where(['cat' => $id, 'sub_cat' => $sub_cat, 'status' => 1])->orderBy('id', 'desc')->limit(20)->get();
+
+    return view('frontend.news.t20_category_news', $data);
+  }
+}

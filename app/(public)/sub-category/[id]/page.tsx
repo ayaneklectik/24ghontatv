@@ -20,23 +20,23 @@ export default async function SubCategoryPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <main className="max-w-[1440px] mx-auto px-4 py-8 font-kalpurush">
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-[32px] font-black text-neutral-800">{title}</h1>
-        <span className="text-red-600 font-black">❯</span>
+    <main className="mx-auto w-full max-w-[1440px] px-4 py-7 font-kalpurush sm:px-6">
+      <div className="mb-5 flex items-center gap-2.5 border-b-2 border-red-200 pb-3">
+        <h1 className="text-[27px] font-black text-neutral-800 md:text-[30px]">{title}</h1>
+        <span className="text-[17px] font-black text-red-600">❯</span>
       </div>
       {!news.length ? (
         <div className="py-16 text-center text-neutral-500">কোনো সংবাদ পাওয়া যায়নি।</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {news.map((item) => (
-            <Link key={item.id} href={`/news/${item.id}`} className="group border border-neutral-200 rounded-xl overflow-hidden bg-white">
+            <Link key={item.id} href={`/news/${item.id}`} className="group overflow-hidden border border-neutral-200 bg-white">
               <div className="aspect-[16/10] bg-neutral-100">
                 <MediaImage src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform" />
               </div>
-              <div className="p-4">
-                <h2 className="font-bold text-lg text-neutral-800 group-hover:text-red-600 transition-colors">{item.title}</h2>
-                <p className="text-xs text-neutral-500 mt-2">{item.publishedAt ?? ''}</p>
+              <div className="p-3">
+                <h2 className="line-clamp-3 text-base font-bold text-neutral-800 transition-colors group-hover:text-red-600">{item.title}</h2>
+                <p className="mt-1.5 text-xs text-neutral-500">{item.publishedAt ?? ''}</p>
               </div>
             </Link>
           ))}

@@ -1,0 +1,53 @@
+#slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 660px;
+    margin: auto;
+    overflow: hidden;
+}
+
+.slider-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slider-item {
+    flex: 0 0 100%; /* Changed width to 100% */
+    overflow: hidden;
+    position: relative;
+}
+
+.slider-image {
+    width: 100%;
+    height: auto;
+}
+
+.slider-text-container {
+    bottom: 100;
+    left: 0;
+    width: 100%;
+}
+
+.slider-text {
+    color: #000;
+    text-align: left;
+    padding: 10px;
+    font-size: 18px;
+}
+
+.arrow {
+    position: absolute;
+    top: 30%;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.arrow.left {
+    left: 10px;
+}
+
+.arrow.right {
+    right: 10px;
+}

@@ -1,0 +1,21 @@
+@-webkit-keyframes uparrow1 {
+  0% { -webkit-transform: translateY(0); opacity: 0.4 }
+  100% { -webkit-transform: translateY(-0.4em); opacity: 0.9 }
+}
+
+.arrow1 {
+  border-color:transparent;
+  border-style:solid;
+  border-width:0 15px;
+  display:block;
+  height:0;
+  margin:10px 0px 5px 0px;
+  opacity:0.4;
+  text-indent:-9999px;
+  transform-origin: 50% 50%;
+  width:0;
+}
+.up1 {
+  -webkit-animation: uparrow1 0.6s infinite alternate ease-in-out;
+  border-bottom:20px solid #E70303;
+}

@@ -1,0 +1,286 @@
+<!-- Footer Area -->
+{{-- <footer class="footer-area" id="hide_in_mobile">
+    <div class="custom-container-footer" style="padding-bottom:20px;">
+        <div class="menu-area-footer">
+            <div class="col-md-12" style="text-align:center;">
+                <div class="main-menu">
+                    <ul class="list-unstyled list-inline">
+                        <li class="list-inline-item"><a href="{{ route('home') }}"><i class="fa fa-home"
+                                    style="font-size:22px; color:#FFF;"></i></a></li>
+                        @foreach ($nav_cats as $cat)
+                            <li class="list-inline-item">
+                                <a href="{{ route('all-category-news', $cat->id) }}">{{ $cat->cat_name }}</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-4" style="text-align:center; border-right: solid 4px #666; margin-top:15px;">
+                <div id="" style="padding:0px 10px 10px 0px;">
+                    <a href="{{ route('home') }}">
+                        <img src="{{ asset('public/images/logos/logo_footer.png') }}" style="padding:15px 0px 0px 10px;"
+                            alt="Proval Logo" class="img-fluid" width="150">
+                    </a>
+                </div>
+                <div class="f-newsltr">
+                    <div class="sec-title">
+                        <div style="color:#000; font-size:18px; padding:15px 0px 0px 0px;">
+                            সম্পাদক ও প্রকাশক
+                        </div>
+                        <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                            <b>আরিফ সোহেল < </b>
+                        </div>
+
+                        <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                            নির্বাহী সম্পাদক
+                        </div>
+                        <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                            <b> এস এম আবুল হোসেন </b>
+                        </div>
+                        <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                            উপ-সম্পাদক
+                        </div>
+                        <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                            <b>সালাউদ্দিন স্বপন </b>
+                        </div>
+
+                        <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                            ব্যবস্থাপনা সম্পাদক
+                        </div>
+                        <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                            <b>মেজর [অব.] মো. ইমরুল আলম </b>
+                        </div>
+                    </div></br>
+                </div>
+            </div>
+
+
+            <div class="col-md-4" style="text-align:center; border-right: solid 4px #666; margin-top:15px;">
+                <div class="f-newsltr">
+                    <div class="sec-title">
+                        <div style="color:#000; padding:40px 0px 5px 0px;">
+                            <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                <b>বার্তা বিভাগ ও বাণিজ্যিক যোগাযোগ</b>
+                            </div>
+                            <div style="color:#000; font-size:18px; padding:15px 0px 0px 0px;">
+
+                                    নির্বাহী প্রধান [আইটি] </br>
+                                    <b>এস এম মোয়াজ্জেম হোসেন </b></br></br>
+                                    আবাসিক সম্পাদক [যুক্তরাষ্ট্র]</br>
+                                    <b>দর্পণ কবীর </b></br></br>
+                                    ২৪ঘণ্টা টিভি, মানিকগঞ্জ হাউজিং [তৃতীয় তলা]</br>
+                                    ২১৬, শহীদ সৈয়দ নজরুল ইসলাম সরণি</br>
+                                    পুরানা পল্টন, ঢাকা-১০০০</br
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" style="text-align:center;">
+                <div style="color:#000; font-size:22px; padding:60px 0px 5px 0px;">
+                    বিজ্ঞাপন
+                </div>
+                <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                    গোপনীয়তার নীতি
+                </div>
+                <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                    যোগাযোগ
+                </div>
+                <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                    আমাদের সর্ম্পকে
+                </div>
+                <div class="social-media" style=" padding-top:30px;">
+                    <ul class="list-inline">
+
+                        <li class="list-inline-item"
+                            style="padding:5px 10px; border: solid 1px #CCC; border-radius: 5px;">
+                            <a href="https://www.facebook.com/profile.php?id=61573135707166" target="blank"><i
+                                    class="fa fa-facebook"></i></a>
+                        </li>
+                        <li class="list-inline-item"
+                            style="padding:5px 10px; border: solid 1px #CCC; border-radius: 5px;">
+                            <a href="https://x.com/24ghontatv" target="blank"> <img
+                                    src="{{ asset('public/images/x_logo.jpg') }}" alt="logo" width="20"></a>
+                        </li>
+                        <li class="list-inline-item"
+                            style="padding:5px 10px; border: solid 1px #CCC; border-radius: 5px;">
+                            <a href="https://www.instagram.com/24ghontatv" target="blank"><i
+                                    class="fa fa-instagram"></i></a>
+                        </li>
+                        <li class="list-inline-item"
+                            style="padding:5px 10px; border: solid 1px #CCC; border-radius: 5px;">
+                            <a href="https://www.youtube.com/@24ghontatv" target="blank"><i
+                                    class="fa fa-youtube"></i></a>
+                        </li>
+
+
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-12" style="text-align:center;">
+                <hr>
+                <div class="copyright-text">
+                    <p>© ২০২৫ | বাংলাওয়েব কমিউকেশন্স লিমিটেড কর্তৃক সর্বস্বত্ব ® সংরক্ষিত
+
+
+                    </p>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+</footer> --}}
+
+
+<!-- Footer Area Mobile -->
+<footer class="footer-area">
+    <div class="custom-container-footer" style="padding-bottom:20px;">
+        <div class="menu-area-footer">
+            <div class="col-md-12" style="text-align:center;">
+                <div class="main-menu">
+                    <ul class="list-unstyled list-inline">
+                        <li class="list-inline-item"><a href="{{ route('home') }}">প্রথম পাতা</li>
+                        @foreach ($nav_cats as $cat)
+                            <li class="list-inline-item">
+                                <a href="{{ route('all-category-news', $cat->id) }}">{{ $cat->cat_name }}</a>
+                            </li>
+                        @endforeach
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4" style="text-align:center; margin-top:15px;">
+                    <div id="" style="padding:0px 10px 10px 0px;">
+                        <a href="{{ route('home') }}">
+                            <img src="{{ asset('public/images/logos/logo_footer.png') }}"
+                                style="padding:15px 0px 0px 10px;" alt="Proval Logo" class="img-fluid" width="240">
+                        </a>
+                    </div>
+                    <div class="f-newsltr">
+                        <div class="sec-title">
+                            <div style="color:#000; font-size:18px; padding:15px 0px 0px 0px;">
+                               সম্পাদক ও প্রকাশক
+                            </div>
+                            <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                <b>আরিফ সোহেল </b>
+                            </div>
+
+                            <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                                নির্বাহী সম্পাদক
+                            </div>
+                            <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                <b> এস এম আবুল হোসেন </b>
+                            </div>
+                            <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                                উপ-সম্পাদক
+                            </div>
+                            <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                <b>সালাউদ্দিন স্বপন </b>
+                            </div>
+
+                            <div style="color:#000; font-size:18px; padding:10px 0px 0px 0px;">
+                                ব্যবস্থাপনা সম্পাদক
+                            </div>
+                            <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                <b>মেজর [অব.] মো. ইমরুল আলম </b>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-4" style="text-align:center; margin-top:15px;">
+                    <div class="f-newsltr">
+                        <div class="sec-title">
+                            <div style="color:#000; padding:10px 0px 5px 0px;">
+                                <div style="color:red; font-size:22px; padding:3px 0px 5px 0px; margin-top:-10px;">
+                                    <b>বার্তা বিভাগ ও বাণিজ্যিক যোগাযোগ</b>
+                                </div>
+                                <div style="color:#000; font-size:18px; padding:15px 0px 0px 0px;">
+
+                                    নির্বাহী প্রধান [আইটি] </br>
+                                    <b>এস এম মোয়াজ্জেম হোসেন </b></br></br>
+                                    আবাসিক সম্পাদক [যুক্তরাষ্ট্র]</br>
+                                    <b>দর্পণ কবীর </b></br></br>
+                                    ২৪ঘণ্টা টিভি, মানিকগঞ্জ হাউজিং [তৃতীয় তলা]</br>
+                                    ২১৬, শহীদ সৈয়দ নজরুল ইসলাম সরণি</br>
+                                    পুরানা পল্টন, ঢাকা-১০০০</br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4" style="text-align:center;">
+                    <div style="color:#000; font-size:22px; padding:60px 0px 5px 0px;">
+                        বিজ্ঞাপন
+                    </div>
+                    <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                        গোপনীয়তার নীতি
+                    </div>
+                    <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                        যোগাযোগ
+                    </div>
+                    <div style="color:#000; font-size:22px; padding:3px 0px 5px 0px;">
+                        আমাদের সর্ম্পকে
+                    </div>
+                    <div class="social-media" style=" padding-top:30px;">
+                        <ul class="list-inline">
+
+                            <li class="list-inline-item"
+                                style="padding:5px 10px; border: solid 1px #666; border-radius: 5px;">
+                                <a href="{{ $media->facebook }}" target="blank"><i class="fa fa-facebook"></i></a>
+                            </li>
+                            <li class="list-inline-item"
+                                style="padding:5px 10px; border: solid 1px #666; border-radius: 5px;">
+                                <a href="{{ $media->twitter }}" target="blank"><i class="fa fa-twitter"></i></a>
+                            </li>
+                            <li class="list-inline-item"
+                                style="padding:5px 10px; border: solid 1px #666; border-radius: 5px;">
+                                <a href="{{ $media->instagram }}" target="blank"><i class="fa fa-instagram"></i></a>
+                            </li>
+                            <li class="list-inline-item"
+                                style="padding:5px 10px; border: solid 1px #666; border-radius: 5px;">
+                                <a href="{{ $media->youtube }}" target="blank"><i class="fa fa-youtube"></i></a>
+                            </li>
+                            <li class="list-inline-item"
+                                style="padding:5px 10px; border: solid 1px #666; border-radius: 5px;">
+                                <a href="{{ $media->youtube }}" target="blank"><i class="fa fa-linkedin"></i></a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-12" style="text-align:center;">
+                    <hr>
+                    <div class="copyright-text">
+                        <p>© {{ date('Y') }} | All rights reserved by বাংলাওয়েব কমিউনিকেশন্স লিমিটেড</p>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+</footer>
+
+
+<!-- End Footer Area -->

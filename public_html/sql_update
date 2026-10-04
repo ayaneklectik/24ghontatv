@@ -1,0 +1,67 @@
+ALTER TABLE categories
+ADD INDEX idx_categories_cat_order (cat_order);
+
+
+ALTER TABLE home_cat_ads
+ADD INDEX idx_home_cat_ads_position (ad_position);
+
+ALTER TABLE ad_managers
+ADD INDEX idx_ad_managers_status (status);
+
+ALTER TABLE home_cat_ads
+ADD INDEX idx_home_cat_ads_status (status);
+
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_status_created (status, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_category (category_id);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_cat_status_created (cat, status, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_user (user);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_islead (islead);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_isbreaking (isbreaking);
+
+
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_cat_created (cat, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_status_created (status, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_islead (islead);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_isbreaking (isbreaking);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_user (user);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_published_date (published_date);
+
+ALTER TABLE news_tables
+ADD UNIQUE KEY uq_news_id (news_id);
+
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_status_id (status, id);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_cat_status_created (cat, status, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_subcat_status_created (sub_cat, status, created_at);
+
+ALTER TABLE news_tables
+ADD INDEX idx_news_cat_subcat_status (cat, sub_cat, status);

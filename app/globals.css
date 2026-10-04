@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Kalpurush";
+  src: url("../fonts/kalpurush.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Kalpurush";
+  src: url("../fonts/kalpurush.ttf") format("truetype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Kalpurush", sans-serif;
+  --font-serif: "Kalpurush", sans-serif;
+  --font-kalpurush: "Kalpurush", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: #262626;
+    font-family: "Kalpurush", sans-serif;
+  }
+
+  html[data-reading-mode="on"] body {
+    background-color: #f5f0e3;
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(111, 89, 51, 0.018) 0,
+      rgba(111, 89, 51, 0.018) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  }
+
+  html[data-reading-mode="on"] .bg-white {
+    background-color: #fbf7eb !important;
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(111, 89, 51, 0.012) 0,
+      rgba(111, 89, 51, 0.012) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  }
+
+  html[data-reading-mode="on"] .bg-gray-50 {
+    background-color: #f2ecde !important;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+}
+
+@keyframes marqueeFast {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-fast {
+  display: inline-flex;
+  animation: marqueeFast 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-fast:hover {
+  animation-play-state: paused;
+}
+
+@keyframes breakingTickerLeft {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-breaking-ticker {
+  animation: breakingTickerLeft 25s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breaking-ticker {
+    animation: none;
+    width: 100%;
+    white-space: normal;
+    transform: none;
+  }
+
+  .animate-breaking-ticker > span:first-child {
+    padding: 0 0.75rem;
+    white-space: normal;
+  }
+
+  .animate-breaking-ticker > span:nth-child(2) {
+    display: none;
+  }
+}

@@ -26,15 +26,16 @@ function Pagination({ current, last, basePath }: { current: number; last: number
 
 function Card({ item }: { item: NewsItem }) {
   return (
-    <article className="border-b border-neutral-200 pb-6">
-      <Link href={`/news/${item.id}`} className="group grid grid-cols-1 sm:grid-cols-5 gap-4">
-        <div className="sm:col-span-2 aspect-[16/10] overflow-hidden rounded bg-neutral-100">
+    <article className="border-b border-neutral-200 pb-5">
+      <Link href={`/news/${item.id}`} className="group grid grid-cols-1 gap-4 sm:grid-cols-5">
+        <div className="aspect-[16/10] overflow-hidden border border-neutral-200 bg-neutral-100 sm:col-span-2">
           {item.imageUrl ? <MediaImage src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform" /> : <div className="w-full h-full bg-neutral-200" />}
         </div>
-        <div className="sm:col-span-3">
-          <h2 className="text-xl md:text-2xl font-black leading-snug text-neutral-900 group-hover:text-red-600">{item.title}</h2>
-          {item.excerpt && <p className="mt-2 text-sm md:text-base text-neutral-500 leading-relaxed line-clamp-3">{item.excerpt}</p>}
-          <div className="mt-3 text-sm text-neutral-400">{item.author || 'বার্তা কক্ষ'} {item.publishedAt ? `• ${item.publishedAt}` : ''}</div>
+        <div className="sm:col-span-3 sm:py-1">
+          {item.category && <p className="mb-1 text-xs font-bold text-red-600">{item.category}</p>}
+          <h2 className="text-lg font-black leading-snug text-neutral-900 transition-colors group-hover:text-red-600 md:text-xl">{item.title}</h2>
+          {item.excerpt && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-500 md:text-[15px]">{item.excerpt}</p>}
+          <div className="mt-3 text-xs text-neutral-400">{item.author || 'বার্তা কক্ষ'} {item.publishedAt ? `• ${item.publishedAt}` : ''}</div>
         </div>
       </Link>
     </article>
@@ -67,14 +68,14 @@ export default async function CategoryArchivePage({ params, searchParams }: Page
 
   return (
     <main className="w-full bg-white font-kalpurush text-neutral-800">
-      <div className="max-w-[1440px] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-7 px-4 py-7 sm:px-6 lg:grid-cols-12">
         <section className="lg:col-span-8">
-          <div className="flex items-center gap-3 border-b-2 border-neutral-200 pb-3 mb-6">
-            <h1 className="text-3xl md:text-4xl font-black">{category.name}</h1>
-            <span className="text-red-600 font-black">❯</span>
+          <div className="mb-5 flex items-center gap-2.5 border-b-2 border-red-200 pb-3">
+            <h1 className="text-[27px] font-black leading-none md:text-[30px]">{category.name}</h1>
+            <span className="-translate-y-0.5 text-[17px] font-black text-red-600">❯</span>
           </div>
           {data.sub_categories?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="mb-5 flex flex-wrap gap-2">
               {data.sub_categories.map((sub: any) => (
                 <Link key={sub.id} href={`/sub-category/${sub.id}`} className="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-red-50 hover:text-red-600 text-sm font-bold">{sub.name}</Link>
               ))}
@@ -87,8 +88,8 @@ export default async function CategoryArchivePage({ params, searchParams }: Page
         </section>
 
         <aside className="lg:col-span-4 lg:border-l lg:border-neutral-200 lg:pl-6">
-          <div className="border-b-2 border-neutral-200 pb-3 mb-5 flex items-center gap-3">
-            <h2 className="text-2xl font-black">এই বিভাগের সারসংক্ষেপ</h2>
+          <div className="mb-4 flex items-center gap-2 border-b-2 border-red-200 pb-3">
+            <h2 className="text-xl font-black">এই বিভাগের সারসংক্ষেপ</h2>
             <span className="text-red-600 font-black">❯</span>
           </div>
           <p className="text-neutral-500 leading-relaxed">{category.name} বিভাগের প্রকাশিত সর্বশেষ সংবাদগুলো ডাটাবেজ থেকে সরাসরি দেখানো হচ্ছে।</p>

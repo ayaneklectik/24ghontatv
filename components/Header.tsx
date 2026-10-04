@@ -184,7 +184,7 @@ export default function Header({
       <div className="relative isolate w-full overflow-hidden" style={{ backgroundColor: appearance.backgroundColor }}>
       <div aria-hidden="true" className="absolute inset-0 scale-110" style={{ ...headerBackgroundStyle, filter: `blur(${appearance.backgroundBlur}px)` }} />
       <div className="relative z-10">
-      <div className="mx-auto grid max-w-[1200px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 sm:px-6">
+      <div className="mx-auto grid max-w-[2160px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-2 sm:px-6 sm:py-3">
         <a
           href="https://calendar.google.com/calendar/u/0/r"
           target="_blank"
@@ -192,16 +192,16 @@ export default function Header({
           className="col-span-3 row-start-2 text-center transition-colors hover:text-red-600 sm:col-span-1 sm:col-start-1 sm:row-start-1 sm:text-left"
           title="গুগল ক্যালেন্ডার"
         >
-          <p className="text-xs font-bold sm:text-sm" style={{ color: appearance.textColor }}>
+          <p className="text-[11px] font-bold tracking-wide sm:text-xs" style={{ color: appearance.textColor }}>
             {liveDisplaySettings.showBengaliDate ? dateStr.bgDate : dateStr.engDate || "লোড হচ্ছে..."}
           </p>
         </a>
 
-        <Link href="/" className="col-start-2 row-start-1 flex shrink-0 items-center" aria-label={title}>
+        <Link href="/" className="col-start-2 row-start-1 flex shrink-0 items-center py-1" aria-label={title}>
           <img
             src={logo}
             alt={title}
-            className="h-12 w-auto object-contain sm:h-14 md:h-[72px] lg:h-20"
+            className="h-10 w-auto object-contain sm:h-12 md:h-[58px] lg:h-[64px]"
             suppressHydrationWarning
             onError={(event) => {
               event.currentTarget.src = "/logo.png";
@@ -238,9 +238,9 @@ export default function Header({
       </div>
       </div>
 
-      <div className="w-full border-b border-neutral-300 bg-white">
-        <div className="w-full border-t border-red-600 px-2 sm:px-4">
-          <nav className="flex w-full items-center justify-start overflow-x-auto whitespace-nowrap scrollbar-none lg:justify-center" aria-label="প্রধান নেভিগেশন">
+      <div className="w-full border-b border-neutral-200 bg-white">
+        <div className="w-full border-t border-red-600 bg-white px-2 sm:px-4">
+          <nav className="mx-auto flex max-w-[2160px] items-center justify-start overflow-x-auto whitespace-nowrap scrollbar-none lg:justify-center" aria-label="প্রধান নেভিগেশন">
             <Link
               href="/"
               className={`flex shrink-0 items-center px-2 py-2 transition-colors sm:px-3 ${
@@ -249,7 +249,7 @@ export default function Header({
               aria-label="হোম"
             >
               <span
-                className="h-5 w-5 bg-current"
+                className="h-4 w-4 bg-current"
                 style={{
                   maskImage: "url(/icon-home.svg)",
                   WebkitMaskImage: "url(/icon-home.svg)",
@@ -267,7 +267,7 @@ export default function Header({
                 <Link
                   key={category.id}
                   href={href}
-                  className={`shrink-0 px-2 py-2 text-[13px] font-bold transition-colors sm:px-2.5 sm:text-[15px] md:text-[16px] xl:px-3 xl:text-[17px] ${
+                  className={`shrink-0 px-2 py-2 text-[12px] font-bold tracking-[0.02em] transition-colors sm:px-2.5 sm:text-[13px] md:text-[14px] xl:px-3 xl:text-[15px] ${
                     pathname === href ? "text-red-600" : "text-neutral-700 hover:text-red-600"
                   }`}
                 >
@@ -278,7 +278,7 @@ export default function Header({
 
             <Link
               href="/search"
-              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-3 py-2 text-[13px] font-bold transition-colors sm:px-3 sm:text-[14px] ${
+              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-3 py-2 text-[12px] font-bold tracking-[0.02em] transition-colors sm:px-3 sm:text-[13px] ${
                 pathname === "/search" ? "text-red-600" : "text-neutral-700 hover:text-red-600"
               }`}
             >
@@ -290,15 +290,15 @@ export default function Header({
       </div>
 
       {ticker.length > 0 && (
-        <div className="w-full bg-[#EFEFEF]">
-          <div className="mx-auto flex h-10 max-w-[1200px] items-center overflow-hidden px-4">
-            <div className="z-10 flex shrink-0 items-center gap-2.5 bg-[#EFEFEF] pr-5 shadow-[6px_0_10px_#EFEFEF]">
-              <span className="text-[19px] font-black leading-none text-neutral-900">আলোচিত</span>
-              <span className="-translate-y-0.5 text-[14px] font-black text-red-600">❯</span>
+        <div className="w-full border-b border-neutral-200 bg-[#f5f5f5]">
+          <div className="mx-auto flex h-10 max-w-[2160px] items-center overflow-hidden px-4">
+            <div className="z-10 flex shrink-0 items-center gap-2 bg-[#f5f5f5] pr-4 shadow-[6px_0_8px_#f5f5f5]">
+              <span className="text-[16px] font-black leading-none text-neutral-900">আলোচিত</span>
+              <span className="-translate-y-0.5 text-[12px] font-black text-red-600">❯</span>
             </div>
             <div className="min-w-0 flex-1 overflow-hidden">
               <div
-                className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[15px] font-bold text-neutral-800"
+                className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[14px] font-bold text-neutral-800"
                 style={{ animationDuration: "39.2s" }}
               >
                 {ticker.concat(ticker).map((item, index) => (
