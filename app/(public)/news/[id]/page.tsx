@@ -92,7 +92,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
           {article.content && (
             <div
-              className="prose prose-lg mt-8 max-w-full overflow-x-auto leading-relaxed text-neutral-800 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
+              className="prose prose-lg mt-8 max-w-full overflow-x-auto whitespace-pre-wrap leading-relaxed text-neutral-800 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
           )}
