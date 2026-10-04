@@ -49,7 +49,7 @@ function ImageWithFallback({ src, alt, className, fallbackSrc = "/images/placeho
 function useNewsSummary(item: NewsItem | undefined, enabled: boolean) {
   const [loadedSummary, setLoadedSummary] = useState<{ id: string; text: string } | null>(null);
   const summary = (item ? newsSummary(item, 26) : "") ||
-    (loadedSummary?.id === item?.id ? loadedSummary.text : "");
+    (loadedSummary && loadedSummary.id === item?.id ? loadedSummary.text : "");
 
   useEffect(() => {
     if (!enabled || !item || summary) return;
