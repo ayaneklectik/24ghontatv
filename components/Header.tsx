@@ -184,7 +184,7 @@ export default function Header({
       <div className="relative isolate w-full overflow-hidden" style={{ backgroundColor: appearance.backgroundColor }}>
       <div aria-hidden="true" className="absolute inset-0 scale-110" style={{ ...headerBackgroundStyle, filter: `blur(${appearance.backgroundBlur}px)` }} />
       <div className="relative z-10">
-      <div className="mx-auto grid max-w-[2160px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-2 sm:px-6 sm:py-3">
+      <div className="mx-auto grid max-w-[2160px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-[9px] sm:px-6 sm:py-[13px]">
         <a
           href="https://calendar.google.com/calendar/u/0/r"
           target="_blank"
@@ -201,7 +201,7 @@ export default function Header({
           <img
             src={logo}
             alt={title}
-            className="h-10 w-auto object-contain sm:h-12 md:h-[58px] lg:h-[64px]"
+            className="h-[44px] w-auto object-contain sm:h-[53px] md:h-[64px] lg:h-[70px]"
             suppressHydrationWarning
             onError={(event) => {
               event.currentTarget.src = "/logo.png";
@@ -216,9 +216,9 @@ export default function Header({
             aria-label="পাঠবান্ধব রং"
             aria-pressed={readingMode}
             title={readingMode ? "স্বাভাবিক রং" : "পাঠবান্ধব রং"}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${readingMode ? "border-amber-300 bg-amber-100 text-amber-900" : "border-transparent bg-neutral-100 text-neutral-600 hover:bg-amber-50 hover:text-amber-900"}`}
+            className={`flex h-[35px] w-[35px] items-center justify-center rounded-full border transition-colors ${readingMode ? "border-amber-300 bg-amber-100 text-amber-900" : "border-transparent bg-neutral-100 text-neutral-600 hover:bg-amber-50 hover:text-amber-900"}`}
           >
-            <BookOpenText className="h-4 w-4" />
+            <BookOpenText className="h-[18px] w-[18px]" />
           </button>
           {socialItems.map((item) => (
             <a
@@ -228,7 +228,7 @@ export default function Header({
               rel="noopener noreferrer"
               aria-label={item.label}
               title={item.label}
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-white shadow-sm transition-all duration-150 hover:scale-110 hover:opacity-90 ${item.className}`}
+              className={`flex h-[35px] w-[35px] items-center justify-center rounded-full text-white shadow-sm transition-all duration-150 hover:scale-110 hover:opacity-90 ${item.className}`}
             >
               {item.icon}
             </a>
@@ -249,7 +249,7 @@ export default function Header({
               aria-label="হোম"
             >
               <span
-                className="h-4 w-4 bg-current"
+                className="h-[18px] w-[18px] bg-current"
                 style={{
                   maskImage: "url(/icon-home.svg)",
                   WebkitMaskImage: "url(/icon-home.svg)",
@@ -267,7 +267,7 @@ export default function Header({
                 <Link
                   key={category.id}
                   href={href}
-                  className={`shrink-0 px-2 py-2 text-[12px] font-bold tracking-[0.02em] transition-colors sm:px-2.5 sm:text-[13px] md:text-[14px] xl:px-3 xl:text-[15px] ${
+                  className={`shrink-0 px-[9px] py-[9px] text-[13px] font-bold tracking-[0.02em] transition-colors sm:px-[11px] sm:text-[14px] md:text-[15px] xl:px-[13px] xl:text-[16px] ${
                     pathname === href ? "text-red-600" : "text-neutral-700 hover:text-red-600"
                   }`}
                 >
@@ -278,11 +278,11 @@ export default function Header({
 
             <Link
               href="/search"
-              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-3 py-2 text-[12px] font-bold tracking-[0.02em] transition-colors sm:px-3 sm:text-[13px] ${
+              className={`ml-2 flex shrink-0 items-center gap-2 border-l border-neutral-200 px-[13px] py-[9px] text-[13px] font-bold tracking-[0.02em] transition-colors sm:px-[14px] sm:text-[14px] ${
                 pathname === "/search" ? "text-red-600" : "text-neutral-700 hover:text-red-600"
               }`}
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <Search className="h-[18px] w-[18px]" aria-hidden="true" />
               <span>খুঁজুন</span>
             </Link>
           </nav>
@@ -291,14 +291,14 @@ export default function Header({
 
       {ticker.length > 0 && (
         <div className="w-full border-b border-neutral-200 bg-[#f5f5f5]">
-          <div className="mx-auto flex h-10 max-w-[2160px] items-center overflow-hidden px-4">
+          <div className="mx-auto flex h-11 max-w-[2160px] items-center overflow-hidden px-4">
             <div className="z-10 flex shrink-0 items-center gap-2 bg-[#f5f5f5] pr-4 shadow-[6px_0_8px_#f5f5f5]">
-              <span className="text-[16px] font-black leading-none text-neutral-900">আলোচিত</span>
+              <span className="text-[18px] font-black leading-none text-neutral-900">আলোচিত</span>
               <span className="-translate-y-0.5 text-[12px] font-black text-red-600">❯</span>
             </div>
             <div className="min-w-0 flex-1 overflow-hidden">
               <div
-                className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[14px] font-bold text-neutral-800"
+                className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[15px] font-bold text-neutral-800"
                 style={{ animationDuration: "39.2s" }}
               >
                 {ticker.concat(ticker).map((item, index) => (

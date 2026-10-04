@@ -46,8 +46,48 @@ function ImageWithFallback({ src, alt, className, fallbackSrc = "/images/placeho
   );
 }
 
+function useNewsSummary(item: NewsItem | undefined, enabled: boolean) {
+  const [loadedSummary, setLoadedSummary] = useState<{ id: string; text: string } | null>(null);
+  const summary = (item ? newsSummary(item, 26) : "") ||
+    (loadedSummary?.id === item?.id ? loadedSummary.text : "");
+
+  useEffect(() => {
+    if (!enabled || !item || summary) return;
+
+    let active = true;
+
+    const loadSummary = async () => {
+      try {
+        const response = await fetch(`/api/news/${encodeURIComponent(item.id)}`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`News summary request failed for ${item.id} with HTTP ${response.status}.`);
+        }
+        const payload = await response.json();
+        const news = payload?.data?.news ?? payload?.data ?? {};
+        const fetchedSummary = newsSummary({
+          excerpt: news.excerpt ?? news.news_sub_title ?? news.summary,
+          content: news.content ?? news.dis,
+        }, 26);
+
+        if (active) setLoadedSummary({ id: item.id, text: fetchedSummary });
+      } catch (error) {
+        if (active) console.error(`Could not load summary for story ${item.id}:`, error);
+      }
+    };
+
+    void loadSummary();
+    return () => {
+      active = false;
+    };
+  }, [enabled, item?.id, summary]);
+
+  return summary;
+}
+
 function HeadlineCard({ item, large = false, showSummary = false }: { item: NewsItem; large?: boolean; showSummary?: boolean }) {
-  const summary = newsSummary(item, 26);
+  const summary = useNewsSummary(item, showSummary);
 
   return (
     <Link href={newsHref(item)} className="group block text-left">
@@ -73,53 +113,8 @@ function HeadlineCard({ item, large = false, showSummary = false }: { item: News
 
 function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] }) {
   const [tab, setTab] = useState<"recent" | "popular">("recent");
-  const [summaries, setSummaries] = useState<Record<string, string>>({});
   const list = tab === "recent" ? recent : popular;
   const stories = useMemo(() => list.slice(0, 4), [list]);
-
-  useEffect(() => {
-    let active = true;
-    const missingSummaries = stories.filter((item) => !newsSummary(item));
-    if (!missingSummaries.length) return;
-
-    const loadSummaries = async () => {
-      const results = await Promise.allSettled(
-        missingSummaries.map(async (item) => {
-          const response = await fetch(`/api/news/${encodeURIComponent(item.id)}`, {
-            headers: { Accept: "application/json" },
-          });
-          if (!response.ok) {
-            throw new Error(`News summary request failed for ${item.id} with HTTP ${response.status}.`);
-          }
-          const payload = await response.json();
-          const news = payload?.data?.news ?? payload?.data ?? {};
-          const summary = newsSummary({
-            excerpt: news.excerpt ?? news.news_sub_title ?? news.summary,
-            content: news.content ?? news.dis,
-          }, 26);
-          return [item.id, summary] as const;
-        }),
-      );
-
-      if (!active) return;
-      setSummaries((current) => {
-        const next = { ...current };
-        results.forEach((result, index) => {
-          if (result.status === "fulfilled" && result.value[1]) {
-            next[result.value[0]] = result.value[1];
-          } else if (result.status === "rejected") {
-            console.error(`Could not load summary for story ${missingSummaries[index].id}:`, result.reason);
-          }
-        });
-        return next;
-      });
-    };
-
-    void loadSummaries();
-    return () => {
-      active = false;
-    };
-  }, [stories]);
 
   if (!stories.length) return null;
 
@@ -151,7 +146,7 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
           {stories.map((item, index) => (
             <article key={item.id} className={`min-w-0 ${index > 0 ? "border-t border-neutral-200 pt-4 sm:border-t-0 sm:pt-0" : ""} xl:border-r xl:pr-4 xl:last:border-r-0 xl:last:pr-0`}>
-              <HeadlineCard item={{ ...item, excerpt: item.excerpt || summaries[item.id] }} showSummary />
+              <HeadlineCard item={item} showSummary />
             </article>
           ))}
         </div>
@@ -376,6 +371,7 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
   );
 
   const hero = home.latest_news.find((item) => item.isLead) || home.top_five[0] || home.latest_news[0];
+  const heroSummary = useNewsSummary(hero, Boolean(hero));
   const heroBottom = home.latest_news.filter((item) => item.id !== hero?.id).slice(0, 4);
   const recent = home.latest_news.length ? home.latest_news : allNews;
   const popular = home.popular_news.length ? home.popular_news : home.top_five;
@@ -384,16 +380,16 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
     <main className="w-full bg-white pb-12 font-kalpurush">
       {hero ? (
         <section className="mx-auto mt-5 w-full max-w-[2160px] px-4 font-kalpurush sm:px-6">
-          <div className="grid grid-cols-1 gap-5 border-b border-neutral-300 pb-5 lg:grid-cols-12 lg:gap-7">
-            <div className="flex flex-col justify-start lg:col-span-5 lg:border-r lg:border-neutral-200 lg:pr-7 lg:pt-2">
+          <div className="grid grid-cols-1 gap-5 border-b border-neutral-300 pb-5 md:grid-cols-12 md:gap-7">
+            <div className="flex min-w-0 flex-col justify-start md:col-span-5 md:border-r md:border-neutral-200 md:pr-7 md:pt-2">
               <Link href={newsHref(hero)} className="group block text-left">
                 {hero.category && <span className="mb-2 block text-[12px] font-black uppercase tracking-[0.1em] text-red-600">{hero.category}</span>}
                 <h1 className="text-[28px] font-black leading-[1.15] text-neutral-800 transition-colors group-hover:text-red-600 sm:text-[30px] lg:text-[34px]">{hero.title}</h1>
-                {newsSummary(hero) && <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-neutral-600 sm:text-[15px]">{newsSummary(hero)}</p>}
+                {heroSummary && <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-neutral-600 sm:text-[15px]">{heroSummary}</p>}
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-neutral-700 transition-colors group-hover:text-red-600">বিস্তারিত পড়ুন <ArrowUpRight className="h-4 w-4" /></span>
               </Link>
             </div>
-            <div className="lg:col-span-7">
+            <div className="min-w-0 md:col-span-7">
               <Link href={newsHref(hero)} className="group block aspect-[16/9] overflow-hidden bg-neutral-100">
                 <ImageWithFallback src={imageSrc(hero)} alt={hero.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
               </Link>
