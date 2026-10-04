@@ -297,7 +297,10 @@ export default function Header({
               <span className="-translate-y-0.5 text-[14px] font-black text-red-600">❯</span>
             </div>
             <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[15px] font-bold text-neutral-800">
+              <div
+                className="flex w-max animate-marquee-fast whitespace-nowrap gap-10 text-[15px] font-bold text-neutral-800"
+                style={{ animationDuration: "39.2s" }}
+              >
                 {ticker.concat(ticker).map((item, index) => (
                   <Link
                     key={`${item.id}-${index}`}
