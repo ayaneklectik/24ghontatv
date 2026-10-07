@@ -6,6 +6,7 @@ import { Play, ArrowUpRight, ChevronLeft, ChevronRight, Clock3 } from "lucide-re
 import type { NewsItem, PublicHomeData } from "@/types/public";
 import { absoluteUrl, newsSummary } from "@/lib/public-data";
 import { resolveExternalUrl, resolveVideoUrl, retryAlternateMediaHost, youtubeThumbnailUrl } from "@/lib/urls";
+import { toBengaliDigits } from "@/lib/bengali";
 import SpecialFeatureGrid from "@/components/SpecialFeatureGrid";
 
 function newsHref(item: NewsItem) {
@@ -14,6 +15,46 @@ function newsHref(item: NewsItem) {
 
 function imageSrc(item?: NewsItem) {
   return item?.imageUrl || "/images/placeholder-news.svg";
+}
+
+function parsePublishedDate(value: string) {
+  const match = value.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
+  if (match) {
+    const [, year, month, day, rawHour = "0", minute = "0", second = "0", period] = match;
+    let hour = Number(rawHour);
+    if (period?.toUpperCase() === "PM" && hour < 12) hour += 12;
+    if (period?.toUpperCase() === "AM" && hour === 12) hour = 0;
+
+    const date = new Date(Number(year), Number(month) - 1, Number(day), hour, Number(minute), Number(second));
+    if (
+      date.getFullYear() === Number(year) &&
+      date.getMonth() === Number(month) - 1 &&
+      date.getDate() === Number(day) &&
+      date.getHours() === hour &&
+      date.getMinutes() === Number(minute) &&
+      date.getSeconds() === Number(second)
+    ) {
+      return date;
+    }
+    return null;
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : new Date(timestamp);
+}
+
+function topStoryPublishedAt(value: string, now: number | null) {
+  if (now === null) return value;
+
+  const published = parsePublishedDate(value);
+  if (!published) return value;
+
+  const elapsed = now - published.getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  if (elapsed < 0 || elapsed >= oneDay) return value;
+
+  const hours = Math.max(1, Math.floor(elapsed / (60 * 60 * 1000)));
+  return `${toBengaliDigits(hours)} ঘণ্টা আগে`;
 }
 
 function SectionTitle({ title, href }: { title: string; href?: string }) {
@@ -86,8 +127,9 @@ function useNewsSummary(item: NewsItem | undefined, enabled: boolean) {
   return summary;
 }
 
-function HeadlineCard({ item, large = false, showSummary = false }: { item: NewsItem; large?: boolean; showSummary?: boolean }) {
+function HeadlineCard({ item, large = false, showSummary = false, showRelativeTime = false, now = null }: { item: NewsItem; large?: boolean; showSummary?: boolean; showRelativeTime?: boolean; now?: number | null }) {
   const summary = useNewsSummary(item, showSummary);
+  const publishedAt = showRelativeTime ? topStoryPublishedAt(item.publishedAt, now) : item.publishedAt;
 
   return (
     <Link href={newsHref(item)} className="group block text-left">
@@ -97,7 +139,7 @@ function HeadlineCard({ item, large = false, showSummary = false }: { item: News
       {(item.category || item.publishedAt) && (
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
           {item.category && <span className="rounded-sm bg-red-600 px-2 py-0.5 text-[11px] font-black leading-tight text-white">{item.category}</span>}
-          {item.publishedAt && <span className="flex items-center gap-1 text-[11px] font-bold text-neutral-600"><Clock3 className="h-3 w-3 shrink-0 text-neutral-500" />{item.publishedAt}</span>}
+          {publishedAt && <span className={`flex items-center gap-1 ${showRelativeTime ? "text-xs font-black text-neutral-900" : "text-[11px] font-bold text-neutral-600"}`}><Clock3 className={`h-3 w-3 shrink-0 ${showRelativeTime ? "text-neutral-700" : "text-neutral-500"}`} />{publishedAt}</span>}
         </div>
       )}
       <h3 className={`${large ? "text-[22px] sm:text-[28px]" : "text-[17px] sm:text-[19px]"} mt-2 font-black leading-[1.25] text-neutral-900 transition-colors group-hover:text-red-700 line-clamp-3`}>
@@ -111,17 +153,24 @@ function HeadlineCard({ item, large = false, showSummary = false }: { item: News
   );
 }
 
-function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] }) {
+function TopStories({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] }) {
   const [tab, setTab] = useState<"recent" | "popular">("recent");
+  const [now, setNow] = useState<number | null>(null);
   const list = tab === "recent" ? recent : popular;
-  const stories = useMemo(() => list.slice(0, 4), [list]);
+  const stories = useMemo(() => list.slice(0, 8), [list]);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const interval = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   if (!stories.length) return null;
 
   return (
     <section className="mx-auto mt-7 w-full max-w-[2160px] px-4 font-kalpurush sm:px-6">
-      <div className="rounded-sm border border-[#f0e9c9] bg-[#fffdf1] p-3 sm:p-5">
-        <div className="mb-4 flex flex-col gap-3 border-b border-[#e9dfb8] pb-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="rounded-sm border border-[#ead98f] bg-[#fff8d9] p-3 sm:p-5">
+        <div className="mb-4 flex flex-col gap-3 border-b border-[#e6d27b] pb-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-center gap-2.5">
             <h2 className="text-[25px] font-black leading-none text-neutral-900 sm:text-[28px]"><span className="text-red-600">২৪</span>ঘণ্টার শীর্ষ সংবাদ</h2>
             <span className="-translate-y-0.5 text-[17px] font-black text-red-600">❯</span>
@@ -146,7 +195,7 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
           {stories.map((item, index) => (
             <article key={item.id} className={`min-w-0 ${index > 0 ? "border-t border-neutral-200 pt-4 sm:border-t-0 sm:pt-0" : ""} xl:border-r xl:pr-4 xl:last:border-r-0 xl:last:pr-0`}>
-              <HeadlineCard item={item} showSummary />
+              <HeadlineCard item={item} showSummary showRelativeTime now={now} />
             </article>
           ))}
         </div>
@@ -411,7 +460,7 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
       )}
 
       <SpecialSection home={home} />
-      <TopFive recent={recent} popular={popular} />
+      <TopStories recent={recent} popular={popular} />
       <VideoSection videos={home.videos} />
 
       {home.sections.map((section, index) => (
