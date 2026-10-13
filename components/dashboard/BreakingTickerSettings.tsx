@@ -71,7 +71,7 @@ export default function BreakingTickerSettings() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Breaking News</h1>
-        <p className="mt-1 text-sm text-gray-500">Edit the ticker text, colors, and scrolling speed. Changes publish across the public site.</p>
+        <p className="mt-1 text-sm text-gray-500">Add your own breaking headlines, one per line. Only the headlines you enter here will appear in the red ticker.</p>
       </div>
 
       {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
@@ -83,7 +83,7 @@ export default function BreakingTickerSettings() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="font-bold text-gray-900">Ticker status</h2>
-              <p className="mt-1 text-xs text-gray-500">When disabled, the existing article ticker remains unchanged.</p>
+              <p className="mt-1 text-xs text-gray-500">Turn the red breaking-news ticker on or off.</p>
             </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-700">
               <input
@@ -97,15 +97,16 @@ export default function BreakingTickerSettings() {
           </div>
 
           <label className="block text-sm font-semibold text-gray-700">
-            Breaking News text
+            Breaking headlines (one per line)
             <textarea
               value={ticker.text}
               onChange={(event) => updateTicker('text', event.target.value)}
               rows={4}
               maxLength={500}
-              placeholder="Type the breaking news headline or announcement…"
+              placeholder={"প্রথম ব্রেকিং নিউজ লিখুন…\\nদ্বিতীয় ব্রেকিং নিউজ লিখুন…\\nতৃতীয় ব্রেকিং নিউজ লিখুন…"}
               className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal focus:border-red-500 focus:outline-none"
             />
+            <span className="mt-1 block text-xs font-normal text-gray-500">Each line becomes a separate scrolling headline.</span>
             <span className="mt-1 block text-right text-xs font-normal text-gray-400">{ticker.text.length}/500</span>
           </label>
 
@@ -169,13 +170,18 @@ export default function BreakingTickerSettings() {
             <h2 className="font-bold text-gray-900">Live preview</h2>
             <p className="mt-1 text-xs text-gray-500">This preview follows the public ticker colors and speed.</p>
           </div>
-          {ticker.enabled && ticker.text.trim() ? (
+          {ticker.enabled && ticker.text.split(/\\r?\\n/).some((headline) => headline.trim()) ? (
             <div className="flex h-12 items-center overflow-hidden rounded" style={{ backgroundColor: ticker.backgroundColor, color: ticker.textColor }}>
               <span className="z-10 h-full shrink-0 px-3 py-3 text-xs font-black">ব্রেকিং নিউজ</span>
               <div className="min-w-0 flex-1 overflow-hidden">
                 <div className={`animate-breaking-ticker flex w-max whitespace-nowrap text-sm ${ticker.bold ? 'font-bold' : 'font-normal'}`} style={{ animationDuration: `${ticker.speedSeconds}s` }}>
-                  <span className="pr-16">{ticker.text}</span>
-                  <span aria-hidden="true" className="pr-16">{ticker.text}</span>
+                  {[0, 1].map((copy) => (
+                    <div key={copy} className="breaking-ticker-group flex shrink-0 items-center gap-4 pr-4" aria-hidden={copy === 1 ? true : undefined}>
+                      {ticker.text.split(/\\r?\\n/).map((headline) => headline.trim()).filter(Boolean).map((headline, index) => (
+                        <span key={`${copy}-${index}-${headline}`}>{headline}</span>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -184,7 +190,7 @@ export default function BreakingTickerSettings() {
               {ticker.enabled ? 'Enter ticker text to see the preview.' : 'Breaking News ticker is currently off.'}
             </div>
           )}
-          <p className="text-xs leading-relaxed text-gray-500">The ticker moves continuously from right to left beneath the main navigation.</p>
+          <p className="text-xs leading-relaxed text-gray-500">Only the headlines entered above appear here and in the public red ticker. Add one headline per line, then save and publish.</p>
         </section>
       </div>
     </div>
