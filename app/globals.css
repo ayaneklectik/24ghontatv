@@ -109,7 +109,7 @@
 
 @keyframes breakingTickerLeft {
   0% {
-    transform: translateX(100vw);
+    transform: translateX(0);
   }
   100% {
     transform: translateX(-50%);
@@ -121,6 +121,10 @@
   will-change: transform;
 }
 
+.animate-breaking-ticker:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-breaking-ticker {
     animation: none;
@@ -129,12 +133,15 @@
     transform: none;
   }
 
-  .animate-breaking-ticker > span:first-child {
-    padding: 0 0.75rem;
+  .animate-breaking-ticker > .breaking-ticker-group:first-child {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-right: 0;
     white-space: normal;
   }
 
-  .animate-breaking-ticker > span:nth-child(2) {
+  .animate-breaking-ticker > .breaking-ticker-group:nth-child(2) {
     display: none;
   }
 }
