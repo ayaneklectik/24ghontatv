@@ -179,7 +179,7 @@ export default function Header({
   const appearance = liveDisplaySettings.headerAppearance;
   const activeBreakingTicker = liveDisplaySettings.breakingTicker;
   const manualBreakingHeadlines = activeBreakingTicker.text
-    .split(/\\r?\\n/)
+    .split(/\r?\n/)
     .map((headline) => headline.trim())
     .filter(Boolean)
     .slice(0, 12);
