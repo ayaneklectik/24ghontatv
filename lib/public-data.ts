@@ -97,7 +97,7 @@ export function mapNewsItem(item: any): NewsItem {
     excerpt: decodeHtmlEntities(excerpt ?? ''),
     content: resolveArticleContentImages(item?.content ?? item?.dis ?? ''),
     imageUrl: absoluteUrl(imagePath),
-    publishedAt: item?.publishedAt ?? [item?.published_date, item?.published_time].filter(Boolean).join(' '),
+    publishedAt: item?.publishedAt ?? item?.published_at ?? item?.created_at ?? item?.updated_at ?? [item?.published_date, item?.published_time].filter(Boolean).join(' '),
     author: decodeHtmlEntities(item?.author ?? item?.userModel?.name ?? item?.user_model?.name ?? item?.user?.name ?? '') || undefined,
     location: decodeHtmlEntities(item?.location ?? item?.representative_loc ?? '') || undefined,
     category: decodeHtmlEntities(item?.category?.name ?? item?.category?.cat_name ?? item?.categoryName ?? '') || undefined,
