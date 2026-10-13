@@ -103,7 +103,7 @@ export default function BreakingTickerSettings() {
               onChange={(event) => updateTicker('text', event.target.value)}
               rows={4}
               maxLength={500}
-              placeholder={"প্রথম ব্রেকিং নিউজ লিখুন…\\nদ্বিতীয় ব্রেকিং নিউজ লিখুন…\\nতৃতীয় ব্রেকিং নিউজ লিখুন…"}
+              placeholder={"প্রথম ব্রেকিং নিউজ লিখুন…\nদ্বিতীয় ব্রেকিং নিউজ লিখুন…\nতৃতীয় ব্রেকিং নিউজ লিখুন…"}
               className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal focus:border-red-500 focus:outline-none"
             />
             <span className="mt-1 block text-xs font-normal text-gray-500">Each line becomes a separate scrolling headline.</span>
@@ -170,14 +170,14 @@ export default function BreakingTickerSettings() {
             <h2 className="font-bold text-gray-900">Live preview</h2>
             <p className="mt-1 text-xs text-gray-500">This preview follows the public ticker colors and speed.</p>
           </div>
-          {ticker.enabled && ticker.text.split(/\\r?\\n/).some((headline) => headline.trim()) ? (
+          {ticker.enabled && ticker.text.split(/\r?\n/).some((headline) => headline.trim()) ? (
             <div className="flex h-12 items-center overflow-hidden rounded" style={{ backgroundColor: ticker.backgroundColor, color: ticker.textColor }}>
               <span className="z-10 h-full shrink-0 px-3 py-3 text-xs font-black">ব্রেকিং নিউজ</span>
               <div className="min-w-0 flex-1 overflow-hidden">
                 <div className={`animate-breaking-ticker flex w-max whitespace-nowrap text-sm ${ticker.bold ? 'font-bold' : 'font-normal'}`} style={{ animationDuration: `${ticker.speedSeconds}s` }}>
                   {[0, 1].map((copy) => (
                     <div key={copy} className="breaking-ticker-group flex shrink-0 items-center gap-4 pr-4" aria-hidden={copy === 1 ? true : undefined}>
-                      {ticker.text.split(/\\r?\\n/).map((headline) => headline.trim()).filter(Boolean).map((headline, index) => (
+                      {ticker.text.split(/\r?\n/).map((headline) => headline.trim()).filter(Boolean).map((headline, index) => (
                         <span key={`${copy}-${index}-${headline}`}>{headline}</span>
                       ))}
                     </div>
