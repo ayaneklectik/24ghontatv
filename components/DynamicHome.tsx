@@ -88,16 +88,63 @@ function ImageWithFallback({ src, alt, className, fallbackSrc = "/images/placeho
   );
 }
 
-function HeadlineCard({ item, large = false }: { item: NewsItem; large?: boolean }) {
+function TopFiveTimestamp({ publishedAt }: { publishedAt?: string }) {
+  if (!publishedAt) return null;
+
+  const normalized = publishedAt.includes("T") ? publishedAt : publishedAt.replace(" ", "T");
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const dateText = new Intl.DateTimeFormat("bn-BD", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  const timeText = new Intl.DateTimeFormat("bn-BD", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+
+  const elapsedMs = Math.max(0, Date.now() - date.getTime());
+  const minutes = Math.floor(elapsedMs / 60000);
+  const hours = Math.floor(elapsedMs / 3600000);
+  const days = Math.floor(elapsedMs / 86400000);
+  const elapsedText =
+    minutes < 1 ? "এইমাত্র" :
+    minutes < 60 ? `${toBengaliDigits(minutes)} মিনিট আগে` :
+    hours < 24 ? `${toBengaliDigits(hours)} ঘণ্টা আগে` :
+    `${toBengaliDigits(days)} দিন আগে`;
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      <span className="font-medium text-neutral-700">{dateText}</span>
+      <span className="font-black text-black">{timeText}</span>
+      <span aria-hidden="true" className="text-neutral-500">•</span>
+      <span className="font-black text-black">{elapsedText}</span>
+    </div>
+  );
+}
+
+function HeadlineCard({ item, large = false, topFiveMeta = false }: { item: NewsItem; large?: boolean; topFiveMeta?: boolean }) {
   return (
     <Link href={newsHref(item)} className="group -m-2 block rounded p-2 text-left transition-colors duration-200 hover:bg-[#f5f5f5]">
       <div className={`${large ? "aspect-[16/10]" : "aspect-[16/10]"} overflow-hidden rounded bg-neutral-100 border border-neutral-200`}>
         <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]" />
       </div>
-      {item.category && <div className="mt-3 text-[13px] font-bold text-red-600">{item.category}</div>}
+      {item.category && (
+        topFiveMeta ? (
+          <div className="mt-3 inline-flex rounded-sm bg-red-600 px-2 py-1 text-[12px] font-black leading-none text-white">
+            {item.category}
+          </div>
+        ) : (
+          <div className="mt-3 text-[13px] font-bold text-red-600">{item.category}</div>
+        )
+      )}
       <h3 className={`${large ? "text-[28px] sm:text-[34px]" : "text-[18px] sm:text-[21px]"} mt-1 font-black leading-[1.2] text-neutral-700 transition-colors group-hover:text-red-600 line-clamp-3`}>
         {item.title}
       </h3>
+      {topFiveMeta && <TopFiveTimestamp publishedAt={item.publishedAt} />}
       {large && (
         <ArticlePreview
           item={item}
@@ -145,7 +192,7 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
 
         <div className="grid grid-cols-1 gap-8 py-6 lg:grid-cols-12">
           <div className="lg:col-span-8 lg:border-r lg:border-neutral-200 lg:pr-8">
-            <HeadlineCard item={lead} large />
+            <HeadlineCard item={lead} large topFiveMeta />
           </div>
           <div className="divide-y divide-neutral-200 lg:col-span-4">
             {list.slice(1, 6).map((item, index) => (
@@ -155,8 +202,13 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
                   <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                 </div>
                 <div>
+                  {item.category && (
+                    <span className="mb-2 inline-flex rounded-sm bg-red-600 px-2 py-1 text-[11px] font-black leading-none text-white">
+                      {item.category}
+                    </span>
+                  )}
                   <h3 className="line-clamp-3 text-[16px] font-bold leading-snug text-neutral-700 transition-colors group-hover:text-red-600 sm:text-[18px]">{item.title}</h3>
-                  {item.publishedAt && <p className="mt-2 text-xs font-medium text-neutral-400">{item.publishedAt}</p>}
+                  <TopFiveTimestamp publishedAt={item.publishedAt} />
                 </div>
               </Link>
             ))}
