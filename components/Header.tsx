@@ -321,7 +321,7 @@ export default function Header({
           </div>
         </div>
       )}
-      {activeBreakingTicker.enabled && activeBreakingTicker.text.trim() && (
+      {activeBreakingTicker.enabled && (breakingNews.some((item) => item.title.trim()) || activeBreakingTicker.text.trim()) && (
         <div
           role="region"
           className="flex h-10 w-full items-center overflow-hidden"
@@ -336,8 +336,33 @@ export default function Header({
               className={`animate-breaking-ticker flex w-max whitespace-nowrap text-sm ${activeBreakingTicker.bold ? "font-bold" : "font-normal"}`}
               style={{ animationDuration: `${activeBreakingTicker.speedSeconds}s` }}
             >
-              <span className="pr-16">{activeBreakingTicker.text}</span>
-              <span aria-hidden="true" className="pr-16">{activeBreakingTicker.text}</span>
+              {[0, 1].map((copy) => (
+                <div
+                  key={copy}
+                  className="breaking-ticker-group flex shrink-0 items-center gap-8 pr-8"
+                  aria-hidden={copy === 1 ? true : undefined}
+                >
+                  {breakingNews.some((item) => item.title.trim()) ? (
+                    breakingNews
+                      .filter((item) => item.title.trim())
+                      .slice(0, 12)
+                      .map((item) => (
+                        <React.Fragment key={item.id}>
+                          <Link
+                            href={`/news/${encodeURIComponent(item.id)}`}
+                            className="transition-opacity hover:opacity-80"
+                            tabIndex={copy === 1 ? -1 : undefined}
+                          >
+                            {item.title}
+                          </Link>
+                          <span aria-hidden="true" className="text-white/70">◆</span>
+                        </React.Fragment>
+                      ))
+                  ) : (
+                    <span>{activeBreakingTicker.text}</span>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
