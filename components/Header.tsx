@@ -178,6 +178,11 @@ export default function Header({
   const navCategories = categories.filter((item) => item.name).slice(0, 12);
   const appearance = liveDisplaySettings.headerAppearance;
   const activeBreakingTicker = liveDisplaySettings.breakingTicker;
+  const manualBreakingHeadlines = activeBreakingTicker.text
+    .split(/\\r?\\n/)
+    .map((headline) => headline.trim())
+    .filter(Boolean)
+    .slice(0, 12);
   const headerBackgroundStyle = getHeaderBackgroundStyle(appearance);
 
   return (
@@ -321,7 +326,7 @@ export default function Header({
           </div>
         </div>
       )}
-      {activeBreakingTicker.enabled && (breakingNews.some((item) => item.title.trim()) || activeBreakingTicker.text.trim()) && (
+      {activeBreakingTicker.enabled && manualBreakingHeadlines.length > 0 && (
         <div
           role="region"
           className="flex h-10 w-full items-center overflow-hidden"
@@ -342,25 +347,12 @@ export default function Header({
                   className="breaking-ticker-group flex shrink-0 items-center gap-8 pr-8"
                   aria-hidden={copy === 1 ? true : undefined}
                 >
-                  {breakingNews.some((item) => item.title.trim()) ? (
-                    breakingNews
-                      .filter((item) => item.title.trim())
-                      .slice(0, 12)
-                      .map((item) => (
-                        <React.Fragment key={item.id}>
-                          <Link
-                            href={`/news/${encodeURIComponent(item.id)}`}
-                            className="transition-opacity hover:opacity-80"
-                            tabIndex={copy === 1 ? -1 : undefined}
-                          >
-                            {item.title}
-                          </Link>
-                          <span aria-hidden="true" className="text-white/70">◆</span>
-                        </React.Fragment>
-                      ))
-                  ) : (
-                    <span>{activeBreakingTicker.text}</span>
-                  )}
+                  {manualBreakingHeadlines.map((headline, index) => (
+                    <React.Fragment key={`${copy}-${index}-${headline}`}>
+                      {index > 0 && <span aria-hidden="true" className="text-white/70">◆</span>}
+                      <span>{headline}</span>
+                    </React.Fragment>
+                  ))}
                 </div>
               ))}
             </div>
