@@ -448,6 +448,7 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
 
       <SpecialSection home={home} />
       <TopFive recent={recent} popular={popular} />
+      <VideoSection videos={home.videos} />
 
       {home.sections.slice(0, 10).map((section, index) => (
         <CategorySection
@@ -484,7 +485,6 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
         </section>
       )}
 
-      <VideoSection videos={home.videos} />
       <PhotoSection photos={home.photos} />
     </main>
   );
