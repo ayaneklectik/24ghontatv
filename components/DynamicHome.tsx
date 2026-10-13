@@ -90,7 +90,7 @@ function ImageWithFallback({ src, alt, className, fallbackSrc = "/images/placeho
 
 function HeadlineCard({ item, large = false }: { item: NewsItem; large?: boolean }) {
   return (
-    <Link href={newsHref(item)} className="group block text-left">
+    <Link href={newsHref(item)} className="group -m-2 block rounded p-2 text-left transition-colors duration-200 hover:bg-[#f5f5f5]">
       <div className={`${large ? "aspect-[16/10]" : "aspect-[16/10]"} overflow-hidden rounded bg-neutral-100 border border-neutral-200`}>
         <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]" />
       </div>
@@ -149,7 +149,7 @@ function TopFive({ recent, popular }: { recent: NewsItem[]; popular: NewsItem[] 
           </div>
           <div className="divide-y divide-neutral-200 lg:col-span-4">
             {list.slice(1, 6).map((item, index) => (
-              <Link key={item.id} href={newsHref(item)} className="group grid grid-cols-[40px_96px_1fr] gap-3 py-4 first:pt-0 last:pb-0">
+              <Link key={item.id} href={newsHref(item)} className="group -mx-2 grid grid-cols-[40px_96px_1fr] gap-3 rounded px-2 py-4 transition-colors duration-200 hover:bg-[#f5f5f5] first:pt-0 last:pb-0">
                 <span className="text-[30px] font-black leading-none text-neutral-300 group-hover:text-red-600">{toBengaliDigits(index + 2)}</span>
                 <div className="aspect-[4/3] overflow-hidden rounded bg-neutral-100">
                   <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
@@ -187,7 +187,7 @@ function CategorySection({ title, slug, news, reverse = false }: { title: string
       {items.length > 5 && (
         <div className="mt-6 grid grid-cols-1 gap-5 border-t border-neutral-200 pt-5 sm:grid-cols-2">
           {items.slice(5, 7).map((item) => (
-            <Link key={item.id} href={newsHref(item)} className="group flex gap-4">
+            <Link key={item.id} href={newsHref(item)} className="group -m-2 flex gap-4 rounded p-2 transition-colors duration-200 hover:bg-[#f5f5f5]">
               <div className="h-24 w-36 shrink-0 overflow-hidden rounded bg-neutral-100 sm:h-28 sm:w-44">
                 <ImageWithFallback src={imageSrc(item)} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
               </div>
@@ -363,7 +363,7 @@ export default function DynamicHome({ home }: { home: PublicHomeData }) {
         <section className="mx-auto mt-5 w-full max-w-[1200px] px-4 font-kalpurush sm:px-6">
           <div className="grid grid-cols-1 gap-5 border-b border-neutral-300 pb-5 lg:grid-cols-12 lg:gap-7">
             <div className="flex flex-col justify-center lg:col-span-5 lg:border-r lg:border-neutral-200 lg:pr-7">
-              <Link href={newsHref(hero)} className="group block text-left">
+              <Link href={newsHref(hero)} className="group -m-2 block rounded p-2 text-left transition-colors duration-200 hover:bg-[#f5f5f5]">
                 {hero.category && <span className="mb-2 block text-sm font-bold text-red-600">{hero.category}</span>}
                 <h1 className="text-[25px] font-black leading-[1.2] text-neutral-800 transition-colors group-hover:text-red-600 sm:text-[30px] lg:text-[34px]">{hero.title}</h1>
                 <ArticlePreview
