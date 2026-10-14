@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   },
   description: 'সর্বশেষ বাংলা সংবাদ ও বিশ্লেষণ',
   icons: {
-    icon: '/favicon.png',
+    icon: '/favicon.svg',
   },
 };
 
