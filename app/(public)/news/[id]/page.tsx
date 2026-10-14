@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://24ghontatv.com';
 
   try {
-    const payload = await fetchLaravelPublic<any>(`news/${encodeURIComponent(id)}`);
+    const payload = await fetchLaravelPublic<any>(`news/${encodeURIComponent(id)}`, { revalidateSeconds: 60 });
     const news = payload?.data?.news;
     const article = mapNewsItem(news);
     if (!article.id) return {};
