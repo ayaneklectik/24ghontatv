@@ -4,7 +4,7 @@ const REQUEST_TIMEOUT_MS = 15_000;
 
 export async function fetchLaravelPublic<T>(
   path: string,
-  options: { timeoutMs?: number } = {},
+  options: { timeoutMs?: number; revalidateSeconds?: number } = {},
 ): Promise<T> {
   const base = process.env.LARAVEL_PUBLIC_API_URL;
 
@@ -19,11 +19,21 @@ export async function fetchLaravelPublic<T>(
   );
 
   try {
-    const response = await fetch(`${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`, {
-      cache: 'no-store',
+    const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
       headers: { Accept: 'application/json' },
       signal: controller.signal,
-    });
+    };
+
+    if (options.revalidateSeconds && options.revalidateSeconds > 0) {
+      fetchOptions.next = { revalidate: options.revalidateSeconds };
+    } else {
+      fetchOptions.cache = 'no-store';
+    }
+
+    const response = await fetch(
+      `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`,
+      fetchOptions,
+    );
 
     const payload = await response.json().catch(() => null);
 
@@ -46,4 +56,4 @@ export async function fetchLaravelPublic<T>(
   }
 }
 
-export const fetchLaravelHome = cache(() => fetchLaravelPublic<any>('home'));
+export const fetchLaravelHome = cache(() => fetchLaravelPublic<any>('home', { revalidateSeconds: 30 }));
