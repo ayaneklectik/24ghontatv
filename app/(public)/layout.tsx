@@ -21,7 +21,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   const [homeResult, displaySettingsResult] = await Promise.allSettled([
     fetchLaravelHome(),
-    fetchLaravelPublic<any>('site-display-settings', { timeoutMs: 2_000 }),
+    fetchLaravelPublic<any>('site-display-settings', { timeoutMs: 2_000, revalidateSeconds: 30 }),
   ]);
 
   if (homeResult.status === 'fulfilled') {
