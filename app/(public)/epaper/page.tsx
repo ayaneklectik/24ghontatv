@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatBengaliDateTime } from '@/lib/bengali';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { resolveMediaUrl } from '@/lib/urls';
 
@@ -27,7 +28,7 @@ export default async function EPaperPage() {
             const pdf = paper.pdf_url || (paper.epaper ? resolveMediaUrl(`epaper/${paper.epaper}.pdf`, '') : '');
             return (
               <article key={paper.id} className="border border-neutral-200 rounded-xl bg-white p-5">
-                <div className="text-sm text-neutral-500 mb-3">{paper.pub_date}</div>
+                <div className="text-sm text-neutral-500 mb-3">{formatBengaliDateTime(paper.pub_date) || paper.pub_date}</div>
                 {pdf ? <Link href={pdf} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-white font-bold hover:bg-red-700">
                   PDF খুলুন
                 </Link> : (
