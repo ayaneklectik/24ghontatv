@@ -7,6 +7,7 @@ import { mapNewsItem, newsSummary } from '@/lib/public-data';
 import { resolveShareImageUrl } from '@/lib/urls';
 import type { NewsItem } from '@/types/public';
 import ArticleSocialActions from '@/components/public/ArticleSocialActions';
+import ArticleImagePreview from '@/components/public/ArticleImagePreview';
 import { formatBengaliDateTime } from '@/lib/bengali';
 
 export const dynamic = 'force-dynamic';
@@ -115,13 +116,17 @@ export default async function NewsDetailPage({ params }: PageProps) {
             {article.location && <span>{article.location}</span>}
             {article.publishedAt && <span>{formatBengaliDateTime(article.publishedAt)}</span>}
           </div>
-          {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
+          {(article.imageUrl || article.content) && (
+            <ArticleImagePreview>
+              {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full cursor-zoom-in rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
 
-          {article.content && (
-            <div
-              className="prose prose-lg mt-8 max-w-full overflow-x-auto leading-relaxed text-neutral-800 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
-              dangerouslySetInnerHTML={{ __html: formatArticleContent(article.content) }}
-            />
+              {article.content && (
+                <div
+                  className="prose prose-lg mt-8 max-w-full overflow-x-auto leading-relaxed text-neutral-800 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_img]:h-auto [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:cursor-pointer [&_table]:max-w-full"
+                  dangerouslySetInnerHTML={{ __html: formatArticleContent(article.content) }}
+                />
+              )}
+            </ArticleImagePreview>
           )}
 
           {tags.length > 0 && <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-neutral-200">{tags.map((tag) => <span key={tag} className="px-3 py-1.5 rounded-full bg-neutral-100 text-sm font-bold">#{tag}</span>)}</div>}
