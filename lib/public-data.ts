@@ -128,10 +128,12 @@ export function mapDisplaySettings(payload: any): {
   breakingTicker: BreakingTickerSettings;
   headerAppearance: HeaderAppearanceSettings;
   showBengaliDate: boolean;
+  liveButton: { enabled: boolean; label: string; url: string };
 } {
   const settings = payload?.data ?? payload ?? {};
   const ticker = settings?.breakingTicker ?? settings?.breaking_ticker ?? {};
   const header = settings?.headerAppearance ?? settings?.header_appearance ?? {};
+  const liveButton = settings?.liveButton ?? settings?.live_button ?? {};
   const headerPreset = header?.preset === 'default' ? 'classic' : header?.preset;
   const validColor = (value: unknown, fallback: string) =>
     typeof value === 'string' && /^#[\da-f]{6}$/i.test(value) ? value : fallback;
@@ -139,6 +141,11 @@ export function mapDisplaySettings(payload: any): {
   const backgroundBlur = Number(header?.backgroundBlur ?? header?.background_blur);
 
   return {
+    liveButton: {
+      enabled: Boolean(liveButton?.enabled),
+      label: decodeHtmlEntities(typeof liveButton?.label === 'string' && liveButton.label.trim() ? liveButton.label.trim() : 'LIVE'),
+      url: typeof liveButton?.url === 'string' ? liveButton.url.trim() : '',
+    },
     showBengaliDate: settings?.showBengaliDate === undefined && settings?.show_bengali_date === undefined
       ? true
       : Boolean(settings?.showBengaliDate ?? settings?.show_bengali_date),
