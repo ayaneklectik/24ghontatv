@@ -30,6 +30,11 @@ export function parseBengaliDateTime(value?: string | null): Date | null {
   );
 
   const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized);
+  // The legacy news API serializes Bangladesh-local database timestamps with
+  // a trailing Z. Treat that specific UTC marker as a serialization artifact,
+  // not as an instruction to add six hours to the published wall-clock time.
+  const legacyUtcSuffix = /Z$/i.test(normalized) && hasTime;
+  if (legacyUtcSuffix) normalized = normalized.replace(/Z$/i, '');
   const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
   if (hasTime && !hasTimezone) normalized += '+06:00';
 
