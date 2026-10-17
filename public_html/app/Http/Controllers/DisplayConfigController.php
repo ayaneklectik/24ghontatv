@@ -23,6 +23,10 @@ class DisplayConfigController extends Controller
     {
         $validated = $request->validate([
             'showBengaliDate' => ['sometimes', 'boolean'],
+            'liveButton' => ['sometimes', 'array:enabled,label,url'],
+            'liveButton.enabled' => ['required_with:liveButton', 'boolean'],
+            'liveButton.label' => ['required_with:liveButton', 'string', 'max:80'],
+            'liveButton.url' => ['present_with:liveButton', 'nullable', 'url:http,https', 'max:2048'],
             'breakingTicker' => ['required', 'array:enabled,text,bold,textColor,backgroundColor,speedSeconds'],
             'breakingTicker.enabled' => ['required', 'boolean'],
             'breakingTicker.text' => ['required', 'string', 'max:500'],
@@ -44,7 +48,11 @@ class DisplayConfigController extends Controller
         $attributes = array_merge(DisplayConfig::defaults(), $config?->only(array_keys(DisplayConfig::defaults())) ?? []);
         $attributes = array_merge(
             $attributes,
-            $this->fromContract($validated, (bool) $attributes['show_bengali_date'])
+            $this->fromContract($validated, (bool) $attributes['show_bengali_date'], [
+                'enabled' => (bool) $attributes['live_button_enabled'],
+                'label' => (string) $attributes['live_button_label'],
+                'url' => $attributes['live_button_url'],
+            ])
         );
         $imageToDelete = null;
         $logoToDelete = null;
@@ -152,6 +160,11 @@ class DisplayConfigController extends Controller
     {
         return [
             'showBengaliDate' => $data['show_bengali_date'],
+            'liveButton' => [
+                'enabled' => (bool) $data['live_button_enabled'],
+                'label' => $data['live_button_label'] ?: 'LIVE',
+                'url' => $data['live_button_url'],
+            ],
             'breakingTicker' => [
                 'enabled' => $data['ticker_enabled'],
                 'text' => $data['ticker_text'],
@@ -176,10 +189,15 @@ class DisplayConfigController extends Controller
         ];
     }
 
-    private function fromContract(array $validated, bool $currentShowBengaliDate): array
+    private function fromContract(array $validated, bool $currentShowBengaliDate, array $currentLiveButton): array
     {
+        $liveButton = $validated['liveButton'] ?? $currentLiveButton;
+
         return [
             'show_bengali_date' => $validated['showBengaliDate'] ?? $currentShowBengaliDate,
+            'live_button_enabled' => (bool) ($liveButton['enabled'] ?? false),
+            'live_button_label' => trim((string) ($liveButton['label'] ?? 'LIVE')) ?: 'LIVE',
+            'live_button_url' => $liveButton['url'] ?? null,
             'ticker_enabled' => $validated['breakingTicker']['enabled'],
             'ticker_text' => $validated['breakingTicker']['text'],
             'ticker_bold' => $validated['breakingTicker']['bold'],
