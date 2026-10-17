@@ -100,7 +100,6 @@ export default async function NewsDetailPage({ params }: PageProps) {
             {article.location && <span>{article.location}</span>}
             {article.publishedAt && <span>{formatBengaliDateTime(article.publishedAt)}</span>}
           </div>
-          <ArticleSocialActions title={article.title} description={article.excerpt || newsSummary(article, 30)} imageUrl={article.imageUrl} />
           {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
 
           {article.content && (
@@ -111,6 +110,8 @@ export default async function NewsDetailPage({ params }: PageProps) {
           )}
 
           {tags.length > 0 && <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-neutral-200">{tags.map((tag) => <span key={tag} className="px-3 py-1.5 rounded-full bg-neutral-100 text-sm font-bold">#{tag}</span>)}</div>}
+
+          <ArticleSocialActions title={article.title} description={article.excerpt || newsSummary(article, 30)} imageUrl={article.imageUrl} />
 
           <div className="mt-8 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
             {previousNews && previousNews.id !== article.id && <Link href={`/news/${previousNews.id}`} className="block min-w-0 rounded-xl border p-4 hover:border-red-300"><span className="text-xs text-neutral-400">পূর্ববর্তী</span><div className="mt-1 line-clamp-2 break-words font-black">{previousNews.title}</div></Link>}
