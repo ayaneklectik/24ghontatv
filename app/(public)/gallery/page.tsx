@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatBengaliDateTime } from '@/lib/bengali';
 import { fetchLaravelPublic } from '@/lib/public-api';
 
 interface PageProps { searchParams: Promise<{ page?: string }> }
@@ -30,7 +31,7 @@ export default async function GalleryPage({ searchParams }: PageProps) {
               <div className="aspect-[16/10] bg-neutral-100 overflow-hidden">
                 <img src={photo.thumbnailUrl || photo.imageUrl} alt={photo.title || 'Photo'} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform" />
               </div>
-              <div className="p-4"><h2 className="text-lg md:text-xl font-black leading-snug group-hover:text-red-600 line-clamp-2">{photo.title || 'ফটো গ্যালারি'}</h2><p className="text-sm text-neutral-400 mt-2">{photo.publishedAt || ''}</p></div>
+              <div className="p-4"><h2 className="text-lg md:text-xl font-black leading-snug group-hover:text-red-600 line-clamp-2">{photo.title || 'ফটো গ্যালারি'}</h2><p className="text-sm text-neutral-400 mt-2">{photo.publishedAt ? (formatBengaliDateTime(photo.publishedAt) || photo.publishedAt) : ''}</p></div>
             </Link>
           ))}
         </div>
