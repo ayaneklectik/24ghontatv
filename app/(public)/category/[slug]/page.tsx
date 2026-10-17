@@ -5,6 +5,7 @@ import { mapCategory, mapNewsItem } from '@/lib/public-data';
 import type { CategoryItem, NewsItem } from '@/types/public';
 import MediaImage from '@/components/public/MediaImage';
 import { formatBengaliDateTime } from '@/lib/bengali';
+import CategoryNewsSidebar from '@/components/public/CategoryNewsSidebar';
 
 
 interface PageProps {
@@ -88,13 +89,7 @@ export default async function CategoryArchivePage({ params, searchParams }: Page
           <Pagination current={pagination.current} last={pagination.last} basePath={`/category/${encodeURIComponent(slug)}`} />
         </section>
 
-        <aside className="lg:col-span-4 lg:border-l lg:border-neutral-200 lg:pl-6">
-          <div className="border-b-2 border-neutral-200 pb-3 mb-5 flex items-center gap-3">
-            <h2 className="text-2xl font-black">এই বিভাগের সারসংক্ষেপ</h2>
-            <span className="text-red-600 font-black">❯</span>
-          </div>
-          <p className="text-neutral-500 leading-relaxed">{category.name} বিভাগের প্রকাশিত সর্বশেষ সংবাদগুলো ডাটাবেজ থেকে সরাসরি দেখানো হচ্ছে।</p>
-        </aside>
+        <CategoryNewsSidebar />
       </div>
     </main>
   );
