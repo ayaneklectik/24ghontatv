@@ -298,6 +298,7 @@ export async function adminRequest<T = unknown>(path: string, init: RequestInit 
 export type AdminDisplaySettings = {
   breakingTicker: BreakingTickerSettings;
   headerAppearance: HeaderAppearanceSettings;
+  liveButton: { enabled: boolean; label: string; url: string };
   showBengaliDate: boolean;
 };
 
@@ -309,6 +310,11 @@ export async function fetchAdminDisplaySettings(): Promise<AdminDisplaySettings>
   }
   return {
     ...settings,
+    liveButton: {
+      enabled: Boolean(settings.liveButton?.enabled),
+      label: typeof settings.liveButton?.label === 'string' && settings.liveButton.label.trim() ? settings.liveButton.label : 'LIVE',
+      url: typeof settings.liveButton?.url === 'string' ? settings.liveButton.url : '',
+    },
     showBengaliDate: settings.showBengaliDate === undefined
       ? true
       : Boolean(settings.showBengaliDate),
