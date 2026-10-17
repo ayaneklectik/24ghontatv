@@ -33,6 +33,14 @@ class PublicApiController extends Controller
             ->limit(60)
             ->get();
 
+        $popularNews = NewsTable::query()
+            ->where('status', 1)
+            ->with(['category', 'userModel'])
+            ->orderByDesc('hit')
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get();
+
         $mapNews = fn (Collection $items) => $items
             ->map(fn (NewsTable $item) => $this->newsItem($item))
             ->values();
@@ -48,7 +56,7 @@ class PublicApiController extends Controller
                 'categories' => $categories,
                 'latest_news' => $mapNews($news->take(20)),
                 'breaking_news' => $mapNews($news->where('isbreaking', 1)->take(20)),
-                'popular_news' => $mapNews($news->sortByDesc('hit')->take(20)),
+                'popular_news' => $mapNews($popularNews),
                 'lead_news' => $mapNews($news->where('islead', 1)->take(10)),
                 'top_five' => [],
                 'just_now' => NewsJustNow::query()
