@@ -10,7 +10,7 @@ import {
   FaInstagram,
   FaWhatsapp,
 } from "react-icons/fa6";
-import { BookOpenText, Search } from "lucide-react";
+import { BookOpenText, Search, X } from "lucide-react";
 import { getHeaderBackgroundStyle } from "@/lib/site-display";
 import { formatBengaliDate, formatBengaliGregorianDate, formatEnglishDate } from "@/lib/bengali";
 import { DEFAULT_BREAKING_TICKER, DEFAULT_HEADER_APPEARANCE, mapDisplaySettings } from "@/lib/public-data";
@@ -25,6 +25,34 @@ import type {
 function normalizeWhatsApp(contact?: string | null) {
   const digits = String(contact ?? "").replace(/\D/g, "");
   return digits ? `https://wa.me/${digits}` : null;
+}
+
+function getYouTubeEmbedUrl(rawUrl?: string | null) {
+  let value = String(rawUrl ?? "").trim();
+  const markdownLink = value.match(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/);
+  if (markdownLink) value = markdownLink[1];
+
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    let videoId = "";
+
+    if (host === "youtu.be") {
+      videoId = parsed.pathname.split("/").filter(Boolean)[0] ?? "";
+    } else if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+      if (parsed.pathname === "/watch") {
+        videoId = parsed.searchParams.get("v") ?? "";
+      } else {
+        const match = parsed.pathname.match(/^\/(?:live|embed|shorts|v)\/([^/?]+)/);
+        videoId = match?.[1] ?? "";
+      }
+    }
+
+    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return null;
+    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0`;
+  } catch {
+    return null;
+  }
 }
 
 export default function Header({
@@ -47,6 +75,7 @@ export default function Header({
   const pathname = usePathname();
   const [dateStr, setDateStr] = useState({ engDate: "", bgGregorianDate: "", bgDate: "" });
   const [readingMode, setReadingMode] = useState(false);
+  const [isLiveModalOpen, setIsLiveModalOpen] = useState(false);
   const [liveDisplaySettings, setLiveDisplaySettings] = useState({
     breakingTicker: breakingTicker ?? DEFAULT_BREAKING_TICKER,
     headerAppearance: headerAppearance ?? DEFAULT_HEADER_APPEARANCE,
@@ -102,6 +131,22 @@ export default function Header({
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLiveModalOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsLiveModalOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isLiveModalOpen]);
 
   useEffect(() => {
     const today = new Date();
@@ -289,16 +334,16 @@ export default function Header({
             })}
 
             {liveDisplaySettings.liveButton.enabled && liveDisplaySettings.liveButton.url && (
-              <a
-                href={liveDisplaySettings.liveButton.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => setIsLiveModalOpen(true)}
+                aria-haspopup="dialog"
+                aria-label={liveDisplaySettings.liveButton.label || "LIVE"}
                 className="ml-2 inline-flex shrink-0 items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-red-700 sm:text-sm"
-                aria-label={liveDisplaySettings.liveButton.label || 'LIVE'}
               >
                 <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                <span>{liveDisplaySettings.liveButton.label || 'LIVE'}</span>
-              </a>
+                <span>{liveDisplaySettings.liveButton.label || "LIVE"}</span>
+              </button>
             )}
 
             <Link
@@ -371,6 +416,66 @@ export default function Header({
               ))}
             </div>
           </div>
+        </div>
+      )}
+      {isLiveModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            aria-label="Close LIVE player"
+            onClick={() => setIsLiveModalOpen(false)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="live-player-title"
+            className="relative z-10 w-full max-w-4xl overflow-hidden rounded-xl bg-neutral-950 text-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-4 border-b border-white/15 px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-red-500" />
+                <h2 id="live-player-title" className="truncate text-base font-bold">
+                  {liveDisplaySettings.liveButton.label || "LIVE"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLiveModalOpen(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                aria-label="Close LIVE player"
+                autoFocus
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {getYouTubeEmbedUrl(liveDisplaySettings.liveButton.url) ? (
+              <div className="aspect-video w-full bg-black">
+                <iframe
+                  className="h-full w-full"
+                  src={getYouTubeEmbedUrl(liveDisplaySettings.liveButton.url) ?? undefined}
+                  title="24GhontaTV YouTube Live stream"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="space-y-3 px-5 py-8 text-center">
+                <p className="text-sm text-white/80">
+                  The configured LIVE link is not a supported YouTube video or live-stream URL.
+                </p>
+                <a
+                  href={liveDisplaySettings.liveButton.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+                >
+                  Open stream in a new tab
+                </a>
+              </div>
+            )}
+          </section>
         </div>
       )}
     </header>
