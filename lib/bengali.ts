@@ -25,11 +25,25 @@ export function parseBengaliDateTime(value?: string | null): Date | null {
   if (!raw) return null;
 
   let normalized = raw.match(/^\d{4}-\d{2}-\d{2}$/)
-    ? `${raw}T00:00:00+06:00`
-    : raw.replace(
-        /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/,
-        '$1T$2',
-      );
+    ? raw + 'T00:00:00+06:00'
+    : raw;
+
+  // The cPanel API returns publication dates as "YYYY-MM-DD hh:mm:ss AM/PM".
+  // Parse that format explicitly as Dhaka local time; implicit Date parsing
+  // can make the server timezone shift it by six hours.
+  const twelveHour = normalized.match(
+    /^(\d{4}-\d{2}-\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i,
+  );
+  if (twelveHour) {
+    let hour = Number(twelveHour[2]) % 12;
+    if (twelveHour[5].toUpperCase() === 'PM') hour += 12;
+    normalized = twelveHour[1] + 'T' + String(hour).padStart(2, '0') + ':' + twelveHour[3] + ':' + (twelveHour[4] || '00') + '+06:00';
+  } else {
+    normalized = normalized.replace(
+      /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/,
+      '$1T$2',
+    );
+  }
 
   const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized);
   // The legacy news API serializes Bangladesh-local database timestamps with
