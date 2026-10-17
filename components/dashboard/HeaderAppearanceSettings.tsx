@@ -15,6 +15,7 @@ import { getHeaderBackgroundStyle, HEADER_PRESETS } from '@/lib/site-display';
 const defaultSettings: AdminDisplaySettings = {
   breakingTicker: DEFAULT_BREAKING_TICKER,
   headerAppearance: DEFAULT_HEADER_APPEARANCE,
+  liveButton: { enabled: false, label: 'LIVE', url: '' },
   showBengaliDate: true,
 };
 
@@ -79,6 +80,11 @@ export default function HeaderAppearanceSettings({ showBengaliDate = true }: { s
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedLogo]);
 
+  const updateLiveButton = (key: keyof AdminDisplaySettings['liveButton'], value: boolean | string) => {
+    setSettings((current) => ({ ...current, liveButton: { ...current.liveButton, [key]: value } }));
+    setStatus('');
+  };
+
   const updateAppearance = <K extends keyof AdminDisplaySettings['headerAppearance']>(
     key: K,
     value: AdminDisplaySettings['headerAppearance'][K],
@@ -136,7 +142,16 @@ export default function HeaderAppearanceSettings({ showBengaliDate = true }: { s
         const logoImageUrl = await uploadHeaderLogo(selectedLogo);
         headerAppearance = { ...headerAppearance, logoImageUrl };
       }
-      const updatedSettings = { ...settings, headerAppearance, showBengaliDate };
+      const liveUrl = settings.liveButton.url.trim();
+      if (settings.liveButton.enabled && !liveUrl) {
+        throw new Error('Turn the LIVE button off or enter a valid video URL.');
+      }
+      if (liveUrl) {
+        let parsedUrl: URL;
+        try { parsedUrl = new URL(liveUrl); } catch { throw new Error('Enter a complete video URL starting with https://'); }
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('The LIVE URL must start with http:// or https://');
+      }
+      const updatedSettings = { ...settings, headerAppearance, liveButton: { ...settings.liveButton, label: settings.liveButton.label.trim() || 'LIVE', url: liveUrl }, showBengaliDate };
       await updateAdminDisplaySettings(updatedSettings);
       setSettings(updatedSettings);
       setSelectedImage(null);
@@ -168,6 +183,41 @@ export default function HeaderAppearanceSettings({ showBengaliDate = true }: { s
 
       {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {status && <p role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{status}</p>}
+
+      <div className="mb-5 rounded-xl border border-red-200 bg-red-50/50 p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">Navbar LIVE Button</h3>
+            <p className="mt-1 text-xs text-gray-600">Show a red LIVE link in the public navigation and choose where it opens.</p>
+          </div>
+          <button type="button" role="switch" aria-checked={settings.liveButton.enabled}
+            onClick={() => updateLiveButton('enabled', !settings.liveButton.enabled)}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold ${settings.liveButton.enabled ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+            {settings.liveButton.enabled ? 'LIVE BUTTON ON' : 'LIVE BUTTON OFF'}
+          </button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-xs font-semibold text-gray-700">Button label
+            <input type="text" maxLength={80} value={settings.liveButton.label}
+              onChange={(event) => updateLiveButton('label', event.target.value)}
+              placeholder="LIVE or BAN vs AUS / LIVE"
+              className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" />
+          </label>
+          <label className="block text-xs font-semibold text-gray-700">Live video URL
+            <input type="url" value={settings.liveButton.url}
+              onChange={(event) => updateLiveButton('url', event.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" />
+          </label>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-xs font-extrabold text-white">
+            <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-white" />
+            {settings.liveButton.label.trim() || 'LIVE'}
+          </span>
+          <span className="text-xs text-gray-500">Preview · opens the URL in a new tab</span>
+        </div>
+      </div>
 
       <form id="header-appearance-form" onSubmit={save} className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-4">
