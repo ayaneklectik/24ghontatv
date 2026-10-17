@@ -4,21 +4,7 @@ import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapCategory, mapNewsItem } from '@/lib/public-data';
 import type { CategoryItem, NewsItem } from '@/types/public';
 import MediaImage from '@/components/public/MediaImage';
-
-function formatBengaliDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat('bn-BD', {
-    timeZone: 'Asia/Dhaka',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(date);
-}
+import { formatBengaliDateTime } from '@/lib/bengali';
 
 
 interface PageProps {
