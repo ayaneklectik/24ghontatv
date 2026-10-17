@@ -52,7 +52,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
         </div>
         <div className="p-6">
           <h1 className="text-2xl md:text-3xl font-black text-neutral-800">{video.video_title ?? video.title ?? ''}</h1>
-          {(video.pub_date ?? video.publishedAt) && <p className="text-sm text-neutral-500 mt-2">{formatBengaliDateTime(video.pub_date ?? video.publishedAt) || video.pub_date ?? video.publishedAt}</p>}
+          {(video.pub_date ?? video.publishedAt) && <p className="text-sm text-neutral-500 mt-2">{formatBengaliDateTime(video.pub_date ?? video.publishedAt) || video.pub_date || video.publishedAt}</p>}
           {(video.video_details ?? video.details) && <div className="mt-4 text-neutral-600 leading-7">{video.video_details ?? video.details}</div>}
           {link && !embed && (
             <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex mt-5 rounded-lg bg-red-600 px-4 py-2 text-white font-bold">ভিডিও খুলুন</a>
