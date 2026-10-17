@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatBengaliDateTime } from '@/lib/bengali';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { resolveMediaUrl } from '@/lib/urls';
 
@@ -65,7 +66,7 @@ export default async function GalleryDetailPage({
 
           {photo.publishedAt && (
             <p className="text-sm text-neutral-500 mt-2">
-              {photo.publishedAt}
+              {formatBengaliDateTime(photo.publishedAt) || photo.publishedAt}
             </p>
           )}
 
