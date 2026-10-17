@@ -80,9 +80,16 @@ export interface HeaderAppearanceSettings {
   backgroundBlur: number;
 }
 
+export interface LiveButtonSettings {
+  enabled: boolean;
+  label: string;
+  url: string;
+}
+
 export interface DisplaySettings {
   breakingTicker: BreakingTickerSettings;
   headerAppearance: HeaderAppearanceSettings;
+  liveButton: LiveButtonSettings;
   showBengaliDate: boolean;
 }
 
