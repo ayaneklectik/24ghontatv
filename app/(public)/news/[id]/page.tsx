@@ -55,6 +55,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+function formatBengaliDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('bn-BD', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 export default async function NewsDetailPage({ params }: PageProps) {
   const { id } = await params;
   let payload: any;
@@ -82,10 +97,8 @@ export default async function NewsDetailPage({ params }: PageProps) {
           <h1 className="text-3xl md:text-5xl font-black leading-tight text-neutral-900">{article.title}</h1>
           {article.excerpt && <p className="mt-5 text-lg md:text-xl text-neutral-500 leading-relaxed border-l-4 border-red-500 pl-4">{article.excerpt}</p>}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-5 py-3 border-y border-neutral-200 text-sm text-neutral-500">
-            <span className="font-bold text-neutral-800">{article.author || 'বার্তা কক্ষ'}</span>
             {article.location && <span>{article.location}</span>}
-            {article.publishedAt && <span>{article.publishedAt}</span>}
-            <span>দেখেছেন {article.views ?? 0} বার</span>
+            {article.publishedAt && <span>{formatBengaliDateTime(article.publishedAt)}</span>}
           </div>
           <ArticleSocialActions title={article.title} description={article.excerpt || newsSummary(article, 30)} imageUrl={article.imageUrl} />
           {article.imageUrl && <figure className="mt-6"><MediaImage src={article.imageUrl} alt={article.title} className="w-full rounded-xl object-cover" /><figcaption className="text-sm text-neutral-400 mt-2">{data?.news?.imageTitle || ''}</figcaption></figure>}
