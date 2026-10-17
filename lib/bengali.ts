@@ -35,8 +35,11 @@ export function parseBengaliDateTime(value?: string | null): Date | null {
   // The legacy news API serializes Bangladesh-local database timestamps with
   // a trailing Z. Treat that specific UTC marker as a serialization artifact,
   // not as an instruction to add six hours to the published wall-clock time.
-  const legacyUtcSuffix = /Z$/i.test(normalized) && hasTime;
-  if (legacyUtcSuffix) normalized = normalized.replace(/Z$/i, '');
+  // The cPanel API may serialize a Bangladesh-local SQL timestamp with
+  // either Z or an explicit +00:00 offset. For this legacy field, preserve
+  // the clock time entered/stored in Dhaka rather than adding six hours.
+  const legacyUtcSuffix = /(?:Z|\+00:?00)$/i.test(normalized) && hasTime;
+  if (legacyUtcSuffix) normalized = normalized.replace(/(?:Z|\+00:?00)$/i, '');
   const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
   if (hasTime && !hasTimezone) normalized += '+06:00';
 
