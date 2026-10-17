@@ -1,3 +1,5 @@
+import { getDhakaDateInputValue } from '@/lib/bengali';
+
 export type FrontendCategory = {
   id: string;
   name: string;
@@ -71,7 +73,7 @@ export async function createNewsArticle(data: FrontendNewsPayload, imageFile?: F
     dis: data.content ?? '',
     cat: Number(data.categoryId),
     sub_cat: data.subCategoryId ? Number(data.subCategoryId) : null,
-    published_date: new Date().toISOString().slice(0, 10),
+    published_date: getDhakaDateInputValue(),
     islead: Boolean(data.isLead),
     isbreaking: Boolean(data.isBreaking),
     image_title: data.imageCaption ?? '',
