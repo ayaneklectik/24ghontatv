@@ -5,6 +5,22 @@ import { mapCategory, mapNewsItem } from '@/lib/public-data';
 import type { CategoryItem, NewsItem } from '@/types/public';
 import MediaImage from '@/components/public/MediaImage';
 
+function formatBengaliDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('bn-BD', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
@@ -34,7 +50,7 @@ function Card({ item }: { item: NewsItem }) {
         <div className="sm:col-span-3">
           <h2 className="text-xl md:text-2xl font-black leading-snug text-neutral-900 group-hover:text-red-600">{item.title}</h2>
           {item.excerpt && <p className="mt-2 text-sm md:text-base text-neutral-500 leading-relaxed line-clamp-3">{item.excerpt}</p>}
-          <div className="mt-3 text-sm text-neutral-400">{item.author || 'বার্তা কক্ষ'} {item.publishedAt ? `• ${item.publishedAt}` : ''}</div>
+          <div className="mt-3 text-sm text-neutral-400">{item.publishedAt ? formatBengaliDateTime(item.publishedAt) : ''}</div>
         </div>
       </Link>
     </article>
