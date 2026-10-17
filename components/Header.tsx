@@ -50,6 +50,7 @@ export default function Header({
   const [liveDisplaySettings, setLiveDisplaySettings] = useState({
     breakingTicker: breakingTicker ?? DEFAULT_BREAKING_TICKER,
     headerAppearance: headerAppearance ?? DEFAULT_HEADER_APPEARANCE,
+    liveButton: { enabled: false, label: 'LIVE', url: '' },
     showBengaliDate,
   });
 
@@ -286,6 +287,19 @@ export default function Header({
                 </Link>
               );
             })}
+
+            {liveDisplaySettings.liveButton.enabled && liveDisplaySettings.liveButton.url && (
+              <a
+                href={liveDisplaySettings.liveButton.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 inline-flex shrink-0 items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-red-700 sm:text-sm"
+                aria-label={liveDisplaySettings.liveButton.label || 'LIVE'}
+              >
+                <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                <span>{liveDisplaySettings.liveButton.label || 'LIVE'}</span>
+              </a>
+            )}
 
             <Link
               href="/search"
