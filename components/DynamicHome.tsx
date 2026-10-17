@@ -6,7 +6,7 @@ import { Play, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsItem, PublicHomeData } from "@/types/public";
 import { absoluteUrl, mapNewsItem, newsSummary } from "@/lib/public-data";
 import { resolveExternalUrl, resolveVideoUrl, retryAlternateMediaHost, youtubeThumbnailUrl } from "@/lib/urls";
-import { toBengaliDigits } from "@/lib/bengali";
+import { formatBengaliDateTime, parseBengaliDateTime, toBengaliDigits } from "@/lib/bengali";
 import SpecialFeatureGrid from "@/components/SpecialFeatureGrid";
 
 function newsHref(item: NewsItem) {
@@ -91,19 +91,20 @@ function ImageWithFallback({ src, alt, className, fallbackSrc = "/images/placeho
 function TopFiveTimestamp({ publishedAt }: { publishedAt?: string }) {
   if (!publishedAt) return null;
 
-  const normalized = publishedAt.includes("T") ? publishedAt : publishedAt.replace(" ", "T");
-  const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) return null;
+  const date = parseBengaliDateTime(publishedAt);
+  if (!date) return null;
 
   const dateText = new Intl.DateTimeFormat("bn-BD", {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Dhaka",
   }).format(date);
   const timeText = new Intl.DateTimeFormat("bn-BD", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: "Asia/Dhaka",
   }).format(date);
 
   const elapsedMs = Math.max(0, Date.now() - date.getTime());
@@ -307,7 +308,7 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
           <div className="flex flex-col justify-center p-5 text-white sm:p-7">
             <span className="text-xs font-bold uppercase tracking-wider text-red-300">এখন চলছে</span>
             <h3 className="mt-2 text-xl font-black leading-snug sm:text-2xl">{activeVideo.title}</h3>
-            {activeVideo.publishedAt && <p className="mt-3 text-sm text-neutral-400">{activeVideo.publishedAt}</p>}
+            {activeVideo.publishedAt && <p className="mt-3 text-sm text-neutral-400">{formatBengaliDateTime(activeVideo.publishedAt) || activeVideo.publishedAt}</p>}
           </div>
         </div>
         <button
