@@ -4,7 +4,6 @@ import MediaImage from '@/components/public/MediaImage';
 import { formatBengaliDateTime } from '@/lib/bengali';
 import { mapNewsItem } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
-import { formatBengaliDateTime } from '@/lib/bengali';
 
 
 export default async function SubCategoryPage({ params }: { params: Promise<{ id: string }> }) {
