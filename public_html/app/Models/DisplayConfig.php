@@ -21,6 +21,9 @@ class DisplayConfig extends Model
         'header_secondary_text_color',
         'header_background_blur',
         'show_bengali_date',
+        'live_button_enabled',
+        'live_button_label',
+        'live_button_url',
     ];
 
     protected $casts = [
@@ -29,6 +32,7 @@ class DisplayConfig extends Model
         'ticker_speed' => 'integer',
         'header_background_blur' => 'integer',
         'show_bengali_date' => 'boolean',
+        'live_button_enabled' => 'boolean',
     ];
 
     public static function defaults(): array
@@ -48,6 +52,9 @@ class DisplayConfig extends Model
             'header_secondary_text_color' => '#6B7280',
             'header_background_blur' => 0,
             'show_bengali_date' => true,
+            'live_button_enabled' => false,
+            'live_button_label' => 'LIVE',
+            'live_button_url' => null,
         ];
     }
 }
