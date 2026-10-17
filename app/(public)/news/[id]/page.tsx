@@ -7,6 +7,7 @@ import { mapNewsItem, newsSummary } from '@/lib/public-data';
 import { resolveShareImageUrl } from '@/lib/urls';
 import type { NewsItem } from '@/types/public';
 import ArticleSocialActions from '@/components/public/ArticleSocialActions';
+import { formatBengaliDateTime } from '@/lib/bengali';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -84,21 +85,6 @@ function formatArticleContent(value?: string | null): string {
     .join('');
 }
 
-function formatBengaliDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat('bn-BD', {
-    timeZone: 'Asia/Dhaka',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(date);
-}
-
 export default async function NewsDetailPage({ params }: PageProps) {
   const { id } = await params;
   let payload: any;
@@ -151,7 +137,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
         <aside className="min-w-0 lg:col-span-4 lg:border-l lg:border-neutral-200 lg:pl-6">
           <div className="flex items-center gap-3 border-b-2 border-neutral-200 pb-3 mb-5"><h2 className="text-2xl font-black">আরও সংবাদ</h2><span className="text-red-600 font-black">❯</span></div>
           <div className="space-y-5">
-            {related.map((item) => <Link key={item.id} href={`/news/${item.id}`} className="group grid min-w-0 grid-cols-3 gap-3 border-b border-neutral-200 pb-4"><div className="aspect-[4/3] min-w-0 overflow-hidden rounded bg-neutral-100">{item.imageUrl && <MediaImage src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />}</div><div className="col-span-2 min-w-0"><h3 className="line-clamp-3 break-words font-bold leading-snug group-hover:text-red-600">{item.title}</h3><p className="mt-2 text-xs text-neutral-400">{item.publishedAt || ''}</p></div></Link>)}
+            {related.map((item) => <Link key={item.id} href={`/news/${item.id}`} className="group grid min-w-0 grid-cols-3 gap-3 border-b border-neutral-200 pb-4"><div className="aspect-[4/3] min-w-0 overflow-hidden rounded bg-neutral-100">{item.imageUrl && <MediaImage src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />}</div><div className="col-span-2 min-w-0"><h3 className="line-clamp-3 break-words font-bold leading-snug group-hover:text-red-600">{item.title}</h3><p className="mt-2 text-xs text-neutral-400">{item.publishedAt ? (formatBengaliDateTime(item.publishedAt) || item.publishedAt) : ''}</p></div></Link>)}
           </div>
         </aside>
       </div>
