@@ -300,7 +300,7 @@ export default function Header({
         </div>
       </div>
 
-      {ticker.length > 0 && (
+      {pathname === "/" && ticker.length > 0 && (
         <div className="w-full bg-[#EFEFEF]">
           <div className="mx-auto flex h-10 max-w-[1200px] items-center overflow-hidden px-4">
             <div className="z-10 flex shrink-0 items-center gap-2.5 bg-[#EFEFEF] pr-5 shadow-[6px_0_10px_#EFEFEF]">
@@ -326,7 +326,7 @@ export default function Header({
           </div>
         </div>
       )}
-      {activeBreakingTicker.enabled && manualBreakingHeadlines.length > 0 && (
+      {pathname === "/" && activeBreakingTicker.enabled && manualBreakingHeadlines.length > 0 && (
         <div
           role="region"
           className="flex h-10 w-full items-center overflow-hidden"
