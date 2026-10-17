@@ -55,6 +55,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatArticleContent(value?: string | null): string {
+  const content = String(value ?? '').trim();
+  if (!content) return '';
+
+  // Rich-text editor output should be rendered as HTML without preserving the
+  // formatting whitespace around block tags a second time.
+  if (/<(?:p|br|div|ul|ol|li|h[1-6]|blockquote|table|img|figure|hr)\b/i.test(content)) {
+    return content;
+  }
+
+  // Some articles may contain plain text rather than HTML. Preserve paragraph
+  // breaks and single newlines while escaping the text before injecting it.
+  return content
+    .split(/\n\s*\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\r?\n/g, '<br />')}</p>`)
+    .join('');
+}
+
 function formatBengaliDateTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -104,8 +133,8 @@ export default async function NewsDetailPage({ params }: PageProps) {
 
           {article.content && (
             <div
-              className="prose prose-lg mt-8 max-w-full overflow-x-auto whitespace-pre-wrap leading-relaxed text-neutral-800 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              className="prose prose-lg mt-8 max-w-full overflow-x-auto leading-relaxed text-neutral-800 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_img]:h-auto [&_img]:max-w-full [&_table]:max-w-full"
+              dangerouslySetInnerHTML={{ __html: formatArticleContent(article.content) }}
             />
           )}
 
