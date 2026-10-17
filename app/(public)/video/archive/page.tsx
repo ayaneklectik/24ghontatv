@@ -69,7 +69,7 @@ export default async function VideoArchivePage() {
                 </h2>
 
                 <p className="text-xs text-neutral-500 mt-2">
-                  {video.pub_date ??
+                  {formatBengaliDateTime(video.pub_date ?? video.publishedAt ?? '') || video.pub_date ??
                     video.publishedAt ??
                     ''}
                 </p>
