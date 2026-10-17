@@ -8,6 +8,7 @@ import StarterKit from '@tiptap/starter-kit';
 import ImageExtension from '@tiptap/extension-image';
 import { adminRequest, mapAdminNews, type AdminNews, uploadNewsEditorImage } from '@/lib/admin-api';
 import { fetchCategories, updateNews, type FrontendCategory } from '@/lib/api';
+import { formatDhakaDateInput } from '@/lib/bengali';
 import { retryAlternateMediaHost } from '@/lib/urls';
 
 type EditableNews = AdminNews & {
@@ -16,9 +17,7 @@ type EditableNews = AdminNews & {
 };
 
 function formatDate(value?: string) {
-  if (!value) return new Date().toISOString().slice(0, 10);
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
+  return formatDhakaDateInput(value);
 }
 
 export default function EditPostPage() {
