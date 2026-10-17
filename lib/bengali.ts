@@ -24,10 +24,12 @@ export function parseBengaliDateTime(value?: string | null): Date | null {
   const raw = String(value ?? '').trim();
   if (!raw) return null;
 
-  let normalized = raw.replace(
-    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/,
-    '$1T$2',
-  );
+  let normalized = raw.match(/^\d{4}-\d{2}-\d{2}$/)
+    ? `${raw}T00:00:00+06:00`
+    : raw.replace(
+        /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/,
+        '$1T$2',
+      );
 
   const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized);
   // The legacy news API serializes Bangladesh-local database timestamps with
@@ -43,18 +45,25 @@ export function parseBengaliDateTime(value?: string | null): Date | null {
 }
 
 export function formatBengaliDateTime(value?: string | null): string {
-  const date = parseBengaliDateTime(value);
+  const raw = String(value ?? '').trim();
+  const date = parseBengaliDateTime(raw);
   if (!date) return '';
 
-  return new Intl.DateTimeFormat('bn-BD', {
+  const options: Intl.DateTimeFormatOptions = {
     timeZone: 'Asia/Dhaka',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(date);
+  };
+
+  // Do not fabricate a time when the source only provides a calendar date.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    options.hour = 'numeric';
+    options.minute = '2-digit';
+    options.hour12 = true;
+  }
+
+  return new Intl.DateTimeFormat('bn-BD', options).format(date);
 }
 
 
