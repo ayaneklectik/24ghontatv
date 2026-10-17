@@ -4,6 +4,22 @@ import MediaImage from '@/components/public/MediaImage';
 import { mapNewsItem } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
 
+function formatBengaliDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('bn-BD', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
+
 export default async function SubCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let title = 'সাব-ক্যাটাগরি';
@@ -36,7 +52,7 @@ export default async function SubCategoryPage({ params }: { params: Promise<{ id
               </div>
               <div className="p-4">
                 <h2 className="font-bold text-lg text-neutral-800 group-hover:text-red-600 transition-colors">{item.title}</h2>
-                <p className="text-xs text-neutral-500 mt-2">{item.publishedAt ?? ''}</p>
+                <p className="text-xs text-neutral-500 mt-2">{item.publishedAt ? formatBengaliDateTime(item.publishedAt) : ''}</p>
               </div>
             </Link>
           ))}
