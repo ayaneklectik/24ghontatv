@@ -295,6 +295,23 @@ export default function Header({
       </div>
       </div>
 
+      {liveDisplaySettings.liveButton.enabled && liveDisplaySettings.liveButton.url && (
+        <div className="w-full border-b border-neutral-200 bg-white">
+          <div className="mx-auto flex max-w-[1200px] justify-end px-4 py-2 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setIsLiveModalOpen(true)}
+              aria-haspopup="dialog"
+              aria-label={liveDisplaySettings.liveButton.label || "LIVE"}
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-red-700 sm:text-sm"
+            >
+              <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-white" />
+              <span>{liveDisplaySettings.liveButton.label || "LIVE"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full border-b border-neutral-300 bg-white">
         <div className="w-full border-t border-red-600 px-2 sm:px-4">
           <nav className="flex w-full items-center justify-start overflow-x-auto whitespace-nowrap scrollbar-none lg:justify-center" aria-label="প্রধান নেভিগেশন">
@@ -332,19 +349,6 @@ export default function Header({
                 </Link>
               );
             })}
-
-            {liveDisplaySettings.liveButton.enabled && liveDisplaySettings.liveButton.url && (
-              <button
-                type="button"
-                onClick={() => setIsLiveModalOpen(true)}
-                aria-haspopup="dialog"
-                aria-label={liveDisplaySettings.liveButton.label || "LIVE"}
-                className="ml-2 inline-flex shrink-0 items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-red-700 sm:text-sm"
-              >
-                <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                <span>{liveDisplaySettings.liveButton.label || "LIVE"}</span>
-              </button>
-            )}
 
             <Link
               href="/search"
