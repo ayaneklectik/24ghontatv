@@ -5,7 +5,6 @@ import { formatBengaliDateTime } from '@/lib/bengali';
 import { mapNewsItem } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
 
-
 export default async function SubCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let title = 'সাব-ক্যাটাগরি';
