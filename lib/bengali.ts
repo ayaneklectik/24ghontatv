@@ -14,6 +14,44 @@ export function formatEnglishDate(date: Date): string {
   return toBengaliDigits(formatted);
 }
 
+
+/**
+ * Parse publication timestamps consistently for Bangladesh.
+ * SQL/ISO timestamps without an explicit timezone are treated as Dhaka local
+ * wall time; timestamps with Z or an offset remain absolute instants.
+ */
+export function parseBengaliDateTime(value?: string | null): Date | null {
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+
+  let normalized = raw.replace(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/,
+    '$1T$2',
+  );
+
+  const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized);
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
+  if (hasTime && !hasTimezone) normalized += '+06:00';
+
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function formatBengaliDateTime(value?: string | null): string {
+  const date = parseBengaliDateTime(value);
+  if (!date) return '';
+
+  return new Intl.DateTimeFormat('bn-BD', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 export function formatBengaliGregorianDate(date: Date): string {
   return date.toLocaleDateString('bn-BD', {
     weekday: 'long',
