@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { fetchLaravelPublic } from '@/lib/public-api';
 import { mapNewsItem } from '@/lib/public-data';
 import type { NewsItem } from '@/types/public';
+import { formatBengaliDateTime } from '@/lib/bengali';
 
 interface PageProps {
   searchParams: Promise<{ q?: string; page?: string }>;
@@ -59,7 +60,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
             <div className="sm:col-span-3">
               <h2 className="text-xl md:text-2xl font-black leading-snug group-hover:text-red-600">{item.title}</h2>
               {item.excerpt && <p className="mt-2 text-neutral-500 leading-relaxed line-clamp-3">{item.excerpt}</p>}
-              <p className="mt-3 text-sm text-neutral-400">{item.category || 'সংবাদ'} {item.publishedAt ? `• ${item.publishedAt}` : ''}</p>
+              <p className="mt-3 text-sm text-neutral-400">{item.category || 'সংবাদ'} {item.publishedAt ? `• ${formatBengaliDateTime(item.publishedAt) || item.publishedAt}` : ''}</p>
             </div>
           </Link>
         )) : <div className="py-20 text-center text-neutral-500">কোনো ফলাফল পাওয়া যায়নি।</div>}
