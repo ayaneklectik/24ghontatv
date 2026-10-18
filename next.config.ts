@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   output: 'standalone',
+  async rewrites() {
+    return [
+      {
+        source: '/news-details/:id',
+        destination: '/news/:id',
+      },
+    ];
+  },
   async headers() {
     return [
       {
