@@ -108,6 +108,8 @@ export default function SocialCardStudio() {
   const [background, setBackground] = useState('#ffffff');
   const [texture, setTexture] = useState('none');
   const [selectedIds, setSelectedIds] = useState<string[]>(['headline']);
+  const [marquee, setMarquee] = useState<{x:number;y:number;w:number;h:number}|null>(null);
+  const marqueeStart = useRef<{x:number;y:number;clientX:number;clientY:number}|null>(null);
   const [cardSize, setCardSize] = useState(1080);
   const [zoom, setZoom] = useState(78);
   const [safeArea, setSafeArea] = useState(true);
@@ -211,14 +213,33 @@ export default function SocialCardStudio() {
   const startDrag = (e: React.PointerEvent<HTMLElement>, l: Layer, mode: 'move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw'='move') => {
     const target = e.target as HTMLElement;
     if ((target.closest('[data-editor-ui]') && !target.closest('[aria-label^="Resize layer"]')) || l.locked) return;
-    e.preventDefault(); e.stopPropagation(); setSelectedId(l.id);
-    setDrag({id:l.id,x:l.x,y:l.y,px:e.clientX,py:e.clientY,w:l.width,h:l.height,mode});
-    e.currentTarget.setPointerCapture?.(e.pointerId);
+    e.preventDefault(); e.stopPropagation(); setTab('text');
+    let ids = selectedIds;
+    if (mode.startsWith('resize')) { ids=[l.id]; setSelectedIds(ids); setSelectedId(l.id); }
+    else if (e.shiftKey) { ids=selectedIds.includes(l.id)?selectedIds.filter(id=>id!==l.id):[...selectedIds,l.id]; setSelectedIds(ids); setSelectedId(l.id); if(ids.length<2){setDrag(null);return;} }
+    else if (!selectedIds.includes(l.id) || selectedIds.length<2) { ids=[l.id]; setSelectedIds(ids); setSelectedId(l.id); }
+    const items=layers.filter(item=>ids.includes(item.id)).map(item=>({id:item.id,x:item.x,y:item.y,width:item.width,height:item.height}));
+    const group=items.length>1?{x:Math.min(...items.map(i=>i.x)),y:Math.min(...items.map(i=>i.y)),w:Math.max(...items.map(i=>i.x+i.width))-Math.min(...items.map(i=>i.x)),h:Math.max(...items.map(i=>i.y+i.height))-Math.min(...items.map(i=>i.y)}:undefined;
+    setDrag({id:l.id,x:group?.x??l.x,y:group?.y??l.y,px:e.clientX,py:e.clientY,w:group?.w??l.width,h:group?.h??l.height,mode:ids.length>1&&mode==='move'?'group-move':mode,items,group});
+  };
+  const startMarquee = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('[data-card-layer],[data-editor-ui]') || exporting) return;
+    const r=canvasRef.current?.getBoundingClientRect(); if(!r)return;
+    const x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;
+    marqueeStart.current={x,y,clientX:e.clientX,clientY:e.clientY};setMarquee({x,y,w:0,h:0});if(!e.shiftKey){setSelectedIds([]);setSelectedId('');}
+  };
+  const finishMarquee = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start=marqueeStart.current;if(!start||!canvasRef.current)return;
+    const r=canvasRef.current.getBoundingClientRect(), x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;
+    if(Math.abs(e.clientX-start.clientX)>4||Math.abs(e.clientY-start.clientY)>4){const left=Math.min(start.x,x),top=Math.min(start.y,y),right=Math.max(start.x,x),bottom=Math.max(start.y,y);const hits=layers.filter(l=>l.visible&&l.x<right&&l.x+l.width>left&&l.y<bottom&&l.y+l.height>top).map(l=>l.id);const ids=e.shiftKey?[...new Set([...selectedIds,...hits])]:hits;setSelectedIds(ids);setSelectedId(ids[ids.length-1]||'');if(ids.length)setTab('text');}
+    marqueeStart.current=null;setMarquee(null);
   };
   const moveDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (marqueeStart.current && canvasRef.current) { const r=canvasRef.current.getBoundingClientRect(),start=marqueeStart.current,x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;setMarquee({x:Math.min(start.x,x),y:Math.min(start.y,y),w:Math.abs(x-start.x),h:Math.abs(y-start.y)});return; }
     if (!drag || !canvasRef.current) return;
     const r=canvasRef.current.getBoundingClientRect(); let dx=(e.clientX-drag.px)/r.width*100; let dy=(e.clientY-drag.py)/r.height*100;
     if (snap) { dx=Math.round(dx*2)/2; dy=Math.round(dy*2)/2; }
+    if (drag.mode==='group-move') { const items=drag.items; const minX=Math.min(...items.map(i=>i.x)),minY=Math.min(...items.map(i=>i.y)),maxX=Math.max(...items.map(i=>i.x+i.width)),maxY=Math.max(...items.map(i=>i.y+i.height));const x=Math.max(-minX,Math.min(100-maxX,dx)),y=Math.max(-minY,Math.min(100-maxY,dy));setLayers(prev=>prev.map(l=>{const item=items.find(i=>i.id===l.id);return item?{...l,x:item.x+x,y:item.y+y}:l;}));return; }
     if (drag.mode.startsWith('resize')) {
       const west=drag.mode.includes('w'), east=drag.mode.includes('e'), north=drag.mode.includes('n'), south=drag.mode.includes('s');
       let x=drag.x, y=drag.y, w=drag.w, h=drag.h;
@@ -227,6 +248,7 @@ export default function SocialCardStudio() {
       if (west) { const right=drag.x+drag.w; x=Math.max(0,Math.min(right-3,drag.x+dx)); w=right-x; }
       if (north) { const bottom=drag.y+drag.h; y=Math.max(0,Math.min(bottom-3,drag.y+dy)); h=bottom-y; }
       update(drag.id,{x,y,width:w,height:h});
+      if(drag.items.length>1&&drag.group){const g=drag.group,scaleX=w/g.w,scaleY=h/g.h;setLayers(prev=>prev.map(l=>{const item=drag.items.find(i=>i.id===l.id);if(!item)return l;return {...l,x:x+(item.x-g.x)*scaleX,y:y+(item.y-g.y)*scaleY,width:Math.max(1,item.width*scaleX),height:Math.max(1,item.height*scaleY)};}));return;}
     } else {
       let x=Math.max(0,Math.min(100-drag.w,drag.x+dx)), y=Math.max(0,Math.min(100-drag.h,drag.y+dy));
       if (snap) { if (Math.abs(x+drag.w/2-50)<1.2) x=50-drag.w/2; if (Math.abs(y+drag.h/2-50)<1.2) y=50-drag.h/2; if (Math.abs(x-5)<.7) x=5; if (Math.abs(y-5)<.7) y=5; }
