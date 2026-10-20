@@ -42,6 +42,7 @@ export default function SocialCardStudioPage() {
   const [templateName, setTemplateName] = useState('24 Ghonta default');
   const [savedTemplates, setSavedTemplates] = useState<{ name: string; layers: Layer[]; background: string; backgroundImage: string; cardSize: number }[]>([]);
   const [notice, setNotice] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   const [dragging, setDragging] = useState<{ id: string; mode: 'move' | 'resize'; startX: number; startY: number; x: number; y: number; width: number; height: number } | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -108,56 +109,27 @@ export default function SocialCardStudioPage() {
 
   const exportPng = async () => {
     const preview = previewRef.current;
-    if (!preview) {
-      setNotice('The card preview is not ready yet.');
-      return;
-    }
+    if (!preview || isExporting) return;
 
-    setNotice('Preparing PNG export…');
-    let exportClone: HTMLDivElement | null = null;
+    setNotice('Preparing your PNG…');
+    setIsExporting(true);
     try {
+      // Capture the actual preview after React removes editor-only controls.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       await document.fonts.ready;
-      const bounds = preview.getBoundingClientRect();
+      const node = previewRef.current;
+      if (!node) throw new Error('Preview is unavailable');
+
+      const bounds = node.getBoundingClientRect();
       const sourceWidth = Math.max(1, Math.round(bounds.width));
       const sourceHeight = Math.max(1, Math.round(bounds.height));
-      exportClone = preview.cloneNode(true) as HTMLDivElement;
-
-      // Keep the preview's real browser layout, but remove editor-only controls.
-      // html-to-image handles computed CSS, fonts, and image embedding for rasterization.
-      exportClone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
-      exportClone.querySelectorAll('[data-card-layer]').forEach((element) => {
-        const layer = element as HTMLElement;
-        layer.style.boxShadow = 'none';
-        layer.style.outline = 'none';
-        layer.style.setProperty('--tw-ring-offset-shadow', '0 0 #0000');
-        layer.style.setProperty('--tw-ring-shadow', '0 0 #0000');
-        layer.className = layer.className
-          .split(/\\s+/)
-          .filter((className) => !/^(ring-|outline-|shadow-)/.test(className))
-          .join(' ');
-      });
-
-      exportClone.style.position = 'fixed';
-      exportClone.style.left = '-100000px';
-      exportClone.style.top = '0';
-      exportClone.style.width = `${sourceWidth}px`;
-      exportClone.style.height = `${sourceHeight}px`;
-      exportClone.style.minWidth = `${sourceWidth}px`;
-      exportClone.style.minHeight = `${sourceHeight}px`;
-      exportClone.style.maxWidth = 'none';
-      exportClone.style.maxHeight = 'none';
-      exportClone.style.margin = '0';
-      exportClone.style.transform = 'none';
-      exportClone.style.pointerEvents = 'none';
-      document.body.appendChild(exportClone);
-
-      const dataUrl = await toPng(exportClone, {
+      const dataUrl = await toPng(node, {
         pixelRatio: cardSize / sourceWidth,
         cacheBust: true,
-        backgroundColor: background,
         width: sourceWidth,
         height: sourceHeight,
-        filter: (node) => !(node instanceof HTMLElement && node.hasAttribute('data-editor-ui')),
+        backgroundColor: background,
+        filter: (element) => !(element instanceof HTMLElement && element.hasAttribute('data-editor-ui')),
       });
 
       const link = document.createElement('a');
@@ -166,13 +138,13 @@ export default function SocialCardStudioPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setNotice('PNG downloaded from the live preview layout.');
+      setNotice('PNG downloaded from the live preview.');
     } catch (error) {
       console.error('Social card PNG export failed:', error);
       const reason = error instanceof Error ? error.message : 'Unknown export error';
-      setNotice(`PNG export failed: ${reason.slice(0, 110)}`);
+      setNotice(`PNG export failed: ${reason.slice(0, 140)}`);
     } finally {
-      exportClone?.remove();
+      setIsExporting(false);
     }
   };
 
@@ -211,21 +183,23 @@ export default function SocialCardStudioPage() {
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold">Social Card Studio</h1>
-          <p className="mt-1 text-sm text-gray-500">Build editable 1:1 Bengali news cards. This is an isolated studio; article publishing is not connected to it yet.</p>
+          <p className="mt-1 max-w-3xl text-sm text-gray-600">Create a social post image in three steps: choose your photos, click text to edit it, then download the finished PNG. Changes stay in this editor until you download.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={addText} className="rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-gray-50">+ Add text</button>
-          <button onClick={addImage} className="rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-gray-50">+ Add PNG/image</button>
-          <button onClick={exportPng} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Export PNG</button>
+          <button onClick={addText} className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold hover:bg-gray-50">＋ Add text</button>
+          <button onClick={addImage} className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold hover:bg-gray-50">＋ Add photo / logo</button>
+          <button onClick={exportPng} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">{isExporting ? 'Preparing PNG…' : 'Download PNG'}</button>
         </div>
       </header>
 
       {notice && <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800">{notice}<button className="ml-3 font-bold" onClick={() => setNotice('')}>×</button></div>}
 
+      <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-950"><p className="font-bold">Quick guide</p><ol className="mt-2 grid gap-2 sm:grid-cols-3"><li><span className="font-bold">1. Add images</span><br />Click an empty photo/logo area or use “Add photo / logo”.</li><li><span className="font-bold">2. Edit the design</span><br />Click any text or image. Drag it to move; drag the blue corner to resize.</li><li><span className="font-bold">3. Download</span><br />Click “Download PNG” to save the finished card as an image.</li></ol></div>
+
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-semibold">Live preview <span className="font-normal text-gray-400">— drag to move; drag the blue corner to resize</span></div>
+            <div><h2 className="text-base font-bold">Step 2 — Edit your card</h2><p className="mt-1 text-xs text-gray-500">Click an item to select it. Drag it to move; use the blue corner to resize.</p></div>
             <label className="flex items-center gap-2 text-xs text-gray-600">Preview size
               <select value={cardSize} onChange={(e) => setCardSize(Number(e.target.value))} className="rounded border px-2 py-1">
                 <option value={1080}>1080 × 1080</option><option value={1200}>1200 × 1200</option><option value={800}>800 × 800</option>
@@ -255,7 +229,7 @@ export default function SocialCardStudioPage() {
                     setSelectedId(layer.id);
                     if (layer.kind === 'image' && !layer.src) window.setTimeout(() => fileInputs.current[layer.id]?.click(), 0);
                   }}
-                  className={`absolute overflow-hidden ${selectedId === layer.id ? 'ring-2 ring-blue-500 ring-offset-1' : 'hover:ring-1 hover:ring-blue-300'}`}
+                  className={`absolute overflow-hidden ${!isExporting && selectedId === layer.id ? 'ring-2 ring-blue-500 ring-offset-1' : !isExporting ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                   style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, cursor: dragging?.id === layer.id ? 'grabbing' : 'grab' }}
                 >
                   {layer.kind === 'image' ? (
@@ -264,11 +238,11 @@ export default function SocialCardStudioPage() {
                   ) : (
                     <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
                   )}
-                  {selectedId === layer.id && layer.kind === 'image' && <button type="button" data-editor-ui onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); fileInputs.current[layer.id]?.click(); }} className="absolute left-1 top-1 z-10 rounded bg-gray-900/90 px-2 py-1 text-[11px] font-semibold text-white shadow hover:bg-black">Replace image</button>}
-                  {selectedId === layer.id && <button type="button" data-editor-ui onPointerDown={(event) => startResize(event, layer)} aria-label={`Resize ${layer.name}`} title="Drag to resize" className="absolute bottom-0 right-0 z-10 h-5 w-5 cursor-nwse-resize rounded-tl-md border-2 border-white bg-blue-600 shadow" />}
+                  {!isExporting && selectedId === layer.id && layer.kind === 'image' && <button type="button" data-editor-ui onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); fileInputs.current[layer.id]?.click(); }} className="absolute left-1 top-1 z-10 rounded bg-gray-900/90 px-2 py-1 text-[11px] font-semibold text-white shadow hover:bg-black">Replace image</button>}
+                  {!isExporting && selectedId === layer.id && <button type="button" data-editor-ui onPointerDown={(event) => startResize(event, layer)} aria-label={`Resize ${layer.name}`} title="Drag to resize" className="absolute bottom-0 right-0 z-10 h-5 w-5 cursor-nwse-resize rounded-tl-md border-2 border-white bg-blue-600 shadow" />}
                 </div>
               ))}
-              <div data-editor-ui className="pointer-events-none absolute bottom-1 right-1 rounded bg-white/70 px-1 text-[9px] text-gray-500">EDITOR PREVIEW</div>
+              {!isExporting && <div data-editor-ui className="pointer-events-none absolute bottom-1 right-1 rounded bg-white/70 px-1 text-[9px] text-gray-500">EDITOR PREVIEW</div>}
             </div>
           </div>
           <p className="mt-3 text-xs text-gray-500">Tip: select an element, then change its properties on the right. Uploaded PNGs with transparency are supported. Remote images may block PNG export; uploading the image file avoids that issue.</p>
@@ -276,7 +250,7 @@ export default function SocialCardStudioPage() {
 
         <aside className="space-y-4">
           <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-3 font-bold">Canvas background</h2>
+            <h2 className="mb-1 font-bold">Step 1 — Background</h2><p className="mb-3 text-xs text-gray-500">Choose a solid color or upload a background image.</p>
             <label className="mb-3 block text-xs font-medium">Background color
               <input type="color" value={background} onChange={(e) => setBackground(e.target.value)} className="mt-1 block h-9 w-full cursor-pointer rounded border p-1" />
             </label>
@@ -287,7 +261,7 @@ export default function SocialCardStudioPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-3 font-bold">Selected element</h2>
+            <h2 className="mb-1 font-bold">Edit selected item</h2><p className="mb-3 text-xs text-gray-500">Select text or an image in the preview to change it here.</p>
             {!selected ? <p className="text-sm text-gray-500">Select an element on the card.</p> : <>
               <label className="mb-3 block text-xs font-medium">Element name
                 <input value={selected.name} onChange={(e) => updateLayer(selected.id, { name: e.target.value })} className="mt-1 w-full rounded border px-3 py-2 text-sm" />
@@ -338,7 +312,7 @@ export default function SocialCardStudioPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-3 font-bold">Templates</h2>
+            <h2 className="mb-1 font-bold">Reusable templates</h2><p className="mb-3 text-xs text-gray-500">Save this layout to reuse it in this browser later.</p>
             <label className="block text-xs font-medium">Template name
               <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} className="mt-1 w-full rounded border px-3 py-2 text-sm" />
             </label>
@@ -348,7 +322,7 @@ export default function SocialCardStudioPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-2 font-bold">Layers ({layers.length})</h2>
+            <h2 className="mb-1 font-bold">Card items ({layers.length})</h2><p className="mb-3 text-xs text-gray-500">Click a row to select that item for editing.</p>
             <div className="max-h-56 space-y-1 overflow-y-auto">{layers.map((layer) => <button key={layer.id} onClick={() => setSelectedId(layer.id)} className={`flex w-full items-center justify-between rounded px-2 py-2 text-left text-xs ${selectedId === layer.id ? 'bg-blue-50 font-bold text-blue-800' : 'hover:bg-gray-50'}`}><span className="truncate">{layer.kind === 'image' ? '▧' : 'T'} {layer.name}</span><span className="ml-2 text-gray-400">{layer.visible ? 'Shown' : 'Hidden'}</span></button>)}</div>
           </section>
         </aside>
