@@ -18,17 +18,36 @@ type Layer = {
   fontWeight: number;
   align: 'left' | 'center' | 'right';
   fontFamily: string;
+  backgroundColor?: string;
   visible: boolean;
 };
 
+const bengaliFonts = [
+  { label: 'Noto Sans Bengali — News / clean', value: '"Noto Sans Bengali", sans-serif' },
+  { label: 'Noto Serif Bengali — Editorial serif', value: '"Noto Serif Bengali", serif' },
+  { label: 'Hind Siliguri — Readable', value: '"Hind Siliguri", sans-serif' },
+  { label: 'Anek Bangla — Modern', value: '"Anek Bangla", sans-serif' },
+  { label: 'Tiro Bangla — Traditional', value: '"Tiro Bangla", serif' },
+  { label: 'Baloo Da 2 — Bold display', value: '"Baloo Da 2", sans-serif' },
+  { label: 'Atma — Display', value: '"Atma", cursive' },
+  { label: 'Galada — Decorative', value: '"Galada", cursive' },
+  { label: 'Alkatra — Handwritten display', value: '"Alkatra", cursive' },
+  { label: 'Mina — Compact', value: '"Mina", sans-serif' },
+  { label: 'Google Sans — Contemporary', value: '"Google Sans", sans-serif' },
+  { label: 'Kalpurush — Local font', value: '"Kalpurush", sans-serif' },
+  { label: 'SolaimanLipi — Legacy fallback', value: '"SolaimanLipi", "Kalpurush", sans-serif' },
+  { label: 'Siyam Rupali — Legacy fallback', value: '"Siyam Rupali", "Kalpurush", sans-serif' },
+  { label: 'AdorshoLipi — Legacy fallback', value: '"AdorshoLipi", "Kalpurush", sans-serif' },
+];
+
 const initialLayers: Layer[] = [
-  { id: 'details', kind: 'text', name: 'Details in comments', text: '✓ বিস্তারিত  •  কমেন্টে', x: 4, y: 3, width: 47, height: 6, fontSize: 18, color: '#c82027', fontWeight: 700, align: 'left', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'date', kind: 'text', name: 'Date', text: '১৯ অক্টোবর ২০২৬', x: 65, y: 3, width: 31, height: 6, fontSize: 16, color: '#222222', fontWeight: 500, align: 'right', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'headline-red', kind: 'text', name: 'Headline — red line', text: 'দক্ষিণী সুন্দরী কৃতি শেঠির', x: 5, y: 11, width: 90, height: 8, fontSize: 25, color: '#c82027', fontWeight: 700, align: 'center', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'headline-black', kind: 'text', name: 'Headline — black line', text: 'বলিউডে রোমান্টিক অভিষেক', x: 4, y: 19, width: 92, height: 9, fontSize: 31, color: '#151515', fontWeight: 800, align: 'center', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'main-photo', kind: 'image', name: 'Main photo', src: '', x: 13, y: 29, width: 74, height: 54, fontSize: 16, color: '#111111', fontWeight: 500, align: 'center', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'brand-logo', kind: 'image', name: '24 Ghonta logo', src: '', x: 4, y: 86, width: 34, height: 11, fontSize: 16, color: '#111111', fontWeight: 500, align: 'center', fontFamily: 'Arial, sans-serif', visible: true },
-  { id: 'slogan', kind: 'text', name: 'Brand slogan', text: 'খবরের নতুন\nবাতায়ন', x: 63, y: 86, width: 32, height: 11, fontSize: 19, color: '#c82027', fontWeight: 800, align: 'center', fontFamily: 'Arial, sans-serif', visible: true },
+  { id: 'masthead', kind: 'text', name: '24 Ghonta masthead', text: '২৪ঘণ্টা টিভি  |  সংবাদ', x: 4, y: 3, width: 55, height: 7, fontSize: 23, color: '#ffffff', fontWeight: 800, align: 'left', fontFamily: '"Noto Sans Bengali", sans-serif', backgroundColor: '#c82027', visible: true },
+  { id: 'date', kind: 'text', name: 'Date', text: '২০ অক্টোবর ২০২৬', x: 64, y: 3, width: 32, height: 6, fontSize: 15, color: '#333333', fontWeight: 500, align: 'right', fontFamily: '"Hind Siliguri", sans-serif', visible: true },
+  { id: 'category', kind: 'text', name: 'News category', text: 'জাতীয়  •  সর্বশেষ', x: 5, y: 12, width: 90, height: 5, fontSize: 17, color: '#c82027', fontWeight: 700, align: 'left', fontFamily: '"Hind Siliguri", sans-serif', visible: true },
+  { id: 'headline-red', kind: 'text', name: 'Main headline', text: 'আপনার সংবাদের শিরোনাম এখানে', x: 5, y: 18, width: 90, height: 13, fontSize: 36, color: '#171717', fontWeight: 800, align: 'left', fontFamily: '"Noto Sans Bengali", sans-serif', visible: true },
+  { id: 'headline-black', kind: 'text', name: 'Secondary headline', text: 'গুরুত্বপূর্ণ তথ্য বা সংক্ষিপ্ত উপশিরোনাম', x: 5, y: 30, width: 90, height: 7, fontSize: 22, color: '#444444', fontWeight: 500, align: 'left', fontFamily: '"Hind Siliguri", sans-serif', visible: true },
+  { id: 'main-photo', kind: 'image', name: 'Main photo', src: '', x: 5, y: 39, width: 90, height: 45, fontSize: 16, color: '#111111', fontWeight: 500, align: 'center', fontFamily: '"Noto Sans Bengali", sans-serif', visible: true },
+  { id: 'footer-rule', kind: 'text', name: 'Footer brand strip', text: '২৪ঘণ্টা টিভি  •  খবরের নতুন বাতায়ন', x: 4, y: 87, width: 92, height: 8, fontSize: 20, color: '#ffffff', fontWeight: 700, align: 'center', fontFamily: '"Noto Sans Bengali", sans-serif', backgroundColor: '#c82027', visible: true },
 ];
 
 const newId = () => `layer-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -49,7 +68,7 @@ const exportSafeImageSrc = (src: string) => {
 export default function SocialCardStudioPage() {
   const [layers, setLayers] = useState<Layer[]>(initialLayers);
   const [selectedId, setSelectedId] = useState('headline-black');
-  const [background, setBackground] = useState('#e9e8e5');
+  const [background, setBackground] = useState('#ffffff');
   const [backgroundImage, setBackgroundImage] = useState('');
   const [cardSize, setCardSize] = useState(1080);
   const [templateName, setTemplateName] = useState('24 Ghonta default');
@@ -309,7 +328,7 @@ export default function SocialCardStudioPage() {
                     layer.src ? <img src={exportSafeImageSrc(layer.src)} alt={layer.name} draggable={false} crossOrigin="anonymous" className="h-full w-full object-cover" /> :
                     <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedId(layer.id); window.setTimeout(() => fileInputs.current[layer.id]?.click(), 0); }} className="flex h-full w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed border-gray-500/60 bg-white/40 text-center text-xs text-gray-700">{layer.name}<span className="mt-1 font-semibold underline">Click to choose image</span></button>
                   ) : (
-                    <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
+                    <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, backgroundColor: layer.backgroundColor ?? 'transparent', padding: layer.backgroundColor ? '0.35em 0.55em' : 0, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
                   )}
                   {!isExporting && selectedId === layer.id && layer.kind === 'image' && <button type="button" data-editor-ui onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); fileInputs.current[layer.id]?.click(); }} className="absolute left-1 top-1 z-10 rounded bg-gray-900/90 px-2 py-1 text-[11px] font-semibold text-white shadow hover:bg-black">Replace image</button>}
                   {!isExporting && selectedId === layer.id && <button type="button" data-editor-ui onPointerDown={(event) => startResize(event, layer)} aria-label={`Resize ${layer.name}`} title="Drag to resize" className="absolute bottom-0 right-0 z-10 h-5 w-5 cursor-nwse-resize rounded-tl-md border-2 border-white bg-blue-600 shadow" />}
@@ -363,8 +382,9 @@ export default function SocialCardStudioPage() {
                 </div>
                 <label className="mt-3 block text-xs font-medium">Font family
                   <select value={selected.fontFamily} onChange={(e) => updateLayer(selected.id, { fontFamily: e.target.value })} className="mt-1 w-full rounded border px-2 py-2">
-                    <option value="Arial, sans-serif">Default / Arial fallback</option><option value="sans-serif">Sans-serif</option><option value="serif">Serif</option><option value="Georgia, serif">Georgia</option><option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali (if installed)</option>
+                    {bengaliFonts.map((font) => <option key={font.value} value={font.value}>{font.label}</option>)}
                   </select>
+                  <span className="mt-1 block text-[11px] text-gray-500">Google Fonts load in the editor; legacy font choices fall back to Kalpurush if unavailable.</span>
                 </label>
               </> : <>
                 <div className="mb-3">
