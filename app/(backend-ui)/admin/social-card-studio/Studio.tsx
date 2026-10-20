@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toPng } from 'html-to-image';
 
 type Layer = {
-  id: string; name: string; kind: 'text' | 'image'; text?: string; src?: string; imageFit?: 'cover' | 'contain'; imagePositionX?: number; imagePositionY?: number;
+  id: string; name: string; kind: 'text' | 'image'; articleImage?: boolean; text?: string; src?: string; imageFit?: 'cover' | 'contain'; imagePositionX?: number; imagePositionY?: number;
   x: number; y: number; width: number; height: number; fontSize: number; color: string;
   fontWeight: number; align: 'left' | 'center' | 'right'; fontFamily: string;
   backgroundColor?: string; visible: boolean; opacity?: number; radius?: number;
@@ -55,7 +56,7 @@ function makePreset(p: Design): Layer[] {
   const category = makeLayer('Category', 'জাতীয়  •  সর্বশেষ', 5, 13, 90, 5, 16, p.accent, 800);
   const headline = makeLayer('Headline', title, 5, 20, 90, 18, p.style === 2 ? 39 : 35, white, 900);
   const sub = makeLayer('Subheadline', secondary, 5, 39, 90, 9, 21, dark ? '#e5e7eb' : '#4b5563', 600);
-  const photo: Layer = { id: 'main-photo', name: 'Main photo', kind: 'image', src: '', x: 5, y: 50, width: 90, height: 37, fontSize: 16, color: white, fontWeight: 500, align: 'center', fontFamily: FONT, visible: true, radius: 0 };
+  const photo: Layer = { id: 'main-photo', name: 'Main photo', kind: 'image', articleImage: true, src: '', x: 5, y: 50, width: 90, height: 37, fontSize: 16, color: white, fontWeight: 500, align: 'center', fontFamily: FONT, visible: true, radius: 0 };
   const footer = makeLayer('Footer', '২৪ঘণ্টা টিভি  •  খবরের নতুন বাতায়ন', 4, 91, 92, 6, 15, dark ? '#d1d5db' : '#6b7280', 600);
   switch (p.style) {
     case 0: return [makeLayer('Breaking strip', 'ব্রেকিং নিউজ', 0, 0, 100, 12, 24, '#ffffff', 900, p.accent), category, headline, photo, makeLayer('Urgent footer', 'সর্বশেষ সংবাদ  •  ২৪ঘণ্টা টিভি', 0, 88, 100, 12, 18, '#ffffff', 800, '#111827')];
@@ -87,9 +88,9 @@ function mergeArticleDataIntoLayers(templateLayers: Layer[], article: ArticleDat
     if (dateLayer) dateLayer.text = new Date(article.date).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Dhaka'});
   }
   const imageLayers = layers.filter(l => l.kind === 'image');
-  const mainImage = imageLayers.find(l => /main photo|featured image|article image|hero image|cover photo|photo/i.test(l.name)) || imageLayers.sort((a,b) => (b.width*b.height)-(a.width*a.height))[0];
-  if (mainImage && article.image) mainImage.src = article.image;
-  else if (!mainImage && article.image) layers.push({id:id(),name:'Main photo',kind:'image',src:article.image,x:5,y:52,width:90,height:35,fontSize:16,color:'#ffffff',fontWeight:500,align:'center',fontFamily:FONT,visible:true,radius:0});
+  const mainImage = imageLayers.find(l => l.articleImage) || imageLayers.find(l => /^(main photo|featured image|article image|hero image|cover photo)$/i.test(l.name.trim())) || imageLayers.sort((a,b) => (b.width*b.height)-(a.width*a.height))[0];
+  if (mainImage) { mainImage.src = article.image || ''; mainImage.articleImage = true; }
+  else if (article.image) layers.push({id:'main-photo',name:'Main photo',kind:'image',articleImage:true,src:article.image,x:5,y:52,width:90,height:35,fontSize:16,color:'#ffffff',fontWeight:500,align:'center',fontFamily:FONT,visible:true,radius:0});
   return layers;
 }
 
@@ -103,6 +104,11 @@ const safeImage = (src: string) => {
 };
 
 export default function SocialCardStudio() {
+  const searchParams = useSearchParams();
+  const articleIdParam = searchParams.get('articleId') || '';
+  const articleTitleParam = searchParams.get('title') || '';
+  const articleImageParam = searchParams.get('image') || '';
+  const articleDateParam = searchParams.get('date') || '';
   const [layers, setLayers] = useState<Layer[]>(() => makePreset(designs[1]));
   const [selectedId, setSelectedId] = useState('headline');
   const [background, setBackground] = useState('#ffffff');
@@ -172,14 +178,13 @@ export default function SocialCardStudio() {
 
   useEffect(() => { try { const raw = localStorage.getItem('24ghontatv-social-card-templates'); if (raw) { const v = JSON.parse(raw); if (Array.isArray(v)) setSaved(v); } } catch {} }, []);
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    const articleId = q.get('articleId');
-    if (!articleId && !q.get('title') && !q.get('image')) return;
-    const article = { title: q.get('title') || '', image: q.get('image') || '', date: q.get('date') || '' };
+    const hasArticle = !!(articleIdParam || articleTitleParam || articleImageParam || articleDateParam);
+    if (!hasArticle) { setArticleData(null); return; }
+    const article = { title: articleTitleParam, image: articleImageParam, date: articleDateParam };
     setArticleData(article);
     setLayers(prev => mergeArticleDataIntoLayers(prev, article));
     setNotice('Article loaded. Choose a saved preset to apply its design while keeping this headline and image.');
-  }, []);
+  }, [articleIdParam, articleTitleParam, articleImageParam, articleDateParam]);
 
   const applyDesign = (design: Design) => {
     const presetLayers = makePreset(design);
