@@ -106,102 +106,87 @@ export default function SocialCardStudioPage() {
   };
 
   const exportPng = async () => {
+    const preview = previewRef.current;
+    if (!preview) {
+      setNotice('The card preview is not ready yet.');
+      return;
+    }
+
     setNotice('Preparing PNG export…');
     try {
-      const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error('Image could not be loaded'));
-        image.src = src;
+      // Export the actual preview DOM rather than drawing a second, approximate version
+      // of the design. This preserves the browser's Bengali shaping, line wrapping,
+      // font sizing, image cropping, and CSS layout.
+      await document.fonts.ready;
+      const bounds = preview.getBoundingClientRect();
+      const sourceWidth = Math.max(1, Math.round(bounds.width));
+      const sourceHeight = Math.max(1, Math.round(bounds.height));
+      const clone = preview.cloneNode(true) as HTMLDivElement;
+
+      // Remove editor-only controls and selection handles from the exported artwork.
+      clone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
+      clone.querySelectorAll('[data-card-layer]').forEach((element) => {
+        const layer = element as HTMLElement;
+        layer.style.boxShadow = 'none';
+        layer.style.outline = 'none';
+        layer.style.setProperty('--tw-ring-offset-shadow', '0 0 #0000');
+        layer.style.setProperty('--tw-ring-shadow', '0 0 #0000');
       });
 
-      const canvas = document.createElement('canvas');
-      canvas.width = cardSize;
-      canvas.height = cardSize;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('Canvas is unavailable');
-
-      context.fillStyle = background;
-      context.fillRect(0, 0, cardSize, cardSize);
-      if (backgroundImage) {
-        const image = await loadImage(backgroundImage);
-        const scale = Math.max(cardSize / image.width, cardSize / image.height);
-        const width = image.width * scale;
-        const height = image.height * scale;
-        context.drawImage(image, (cardSize - width) / 2, (cardSize - height) / 2, width, height);
-      } else {
-        context.fillStyle = 'rgba(0,0,0,0.045)';
-        for (let y = 1; y < cardSize; y += 5) {
-          for (let x = 1; x < cardSize; x += 5) {
-            context.beginPath();
-            context.arc(x, y, 0.7, 0, Math.PI * 2);
-            context.fill();
-          }
+      // Inline computed styles recursively so Tailwind classes and inherited styles
+      // remain available inside the standalone SVG used for rasterization.
+      const inlineStyles = (source: Element, target: Element) => {
+        const computed = window.getComputedStyle(source);
+        const targetStyle = (target as HTMLElement | SVGElement).style;
+        for (let index = 0; index < computed.length; index += 1) {
+          const property = computed.item(index);
+          targetStyle.setProperty(property, computed.getPropertyValue(property), computed.getPropertyPriority(property));
         }
-      }
+        const sourceChildren = Array.from(source.children);
+        const targetChildren = Array.from(target.children);
+        sourceChildren.forEach((child, index) => {
+          if (targetChildren[index]) inlineStyles(child, targetChildren[index]);
+        });
+      };
+      inlineStyles(preview, clone);
 
-      for (const layer of layers.filter((item) => item.visible)) {
-        const x = layer.x / 100 * cardSize;
-        const y = layer.y / 100 * cardSize;
-        const width = layer.width / 100 * cardSize;
-        const height = layer.height / 100 * cardSize;
+      // Lock the clone to the exact preview dimensions. Rasterize that same layout
+      // at the requested output resolution, rather than recomputing any text layout.
+      clone.style.width = `${sourceWidth}px`;
+      clone.style.height = `${sourceHeight}px`;
+      clone.style.minWidth = `${sourceWidth}px`;
+      clone.style.minHeight = `${sourceHeight}px`;
+      clone.style.maxWidth = 'none';
+      clone.style.maxHeight = 'none';
+      clone.style.aspectRatio = 'auto';
+      clone.style.position = 'relative';
+      clone.style.margin = '0';
+      clone.style.transform = 'none';
+      clone.style.containerType = 'normal';
 
-        context.save();
-        context.beginPath();
-        context.rect(x, y, width, height);
-        context.clip();
+      const serialized = new XMLSerializer().serializeToString(clone);
+      const xhtml = serialized.replace(/^<div/, '<div xmlns="http://www.w3.org/1999/xhtml"');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cardSize}" height="${cardSize}" viewBox="0 0 ${sourceWidth} ${sourceHeight}"><foreignObject width="${sourceWidth}" height="${sourceHeight}">${xhtml}</foreignObject></svg>`;
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 
-        if (layer.kind === 'image') {
-          if (layer.src) {
-            const image = await loadImage(layer.src);
-            const scale = Math.max(width / image.width, height / image.height);
-            const drawWidth = image.width * scale;
-            const drawHeight = image.height * scale;
-            context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
-          }
-          context.restore();
-          continue;
-        }
+      try {
+        const image = new Image();
+        await new Promise<void>((resolve, reject) => {
+          image.onload = () => resolve();
+          image.onerror = () => reject(new Error('Preview could not be rasterized'));
+          image.src = svgUrl;
+        });
 
-        const fontSize = layer.fontSize * cardSize / 1000;
-        const lineHeight = fontSize * 1.05;
-        context.font = `${layer.fontWeight} ${fontSize}px ${layer.fontFamily}`;
-        context.fillStyle = layer.color;
-        context.textAlign = layer.align;
-        context.textBaseline = 'alphabetic';
+        const canvas = document.createElement('canvas');
+        canvas.width = cardSize;
+        canvas.height = cardSize;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas is unavailable');
+        context.drawImage(image, 0, 0, cardSize, cardSize);
 
-        const paragraphs = (layer.text ?? '').split('\n');
-        const lines: string[] = [];
-        for (const paragraph of paragraphs) {
-          if (!paragraph) {
-            lines.push('');
-            continue;
-          }
-          let line = '';
-          for (const character of Array.from(paragraph)) {
-            const candidate = line + character;
-            if (line && context.measureText(candidate).width > width) {
-              lines.push(line);
-              line = character;
-            } else {
-              line = candidate;
-            }
-          }
-          lines.push(line);
-        }
-
-        const totalHeight = lines.length * lineHeight;
-        const firstBaseline = y + (height - totalHeight) / 2 + fontSize * 0.82;
-        const textX = layer.align === 'left' ? x : layer.align === 'right' ? x + width : x + width / 2;
-        lines.forEach((line, index) => context.fillText(line, textX, firstBaseline + index * lineHeight, width));
-        context.restore();
-      }
-
-      canvas.toBlob((png) => {
-        if (!png) {
-          setNotice('PNG export failed. Please try again.');
-          return;
-        }
+        const png = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG encoding failed')), 'image/png');
+        });
         const pngUrl = URL.createObjectURL(png);
         const link = document.createElement('a');
         link.href = pngUrl;
@@ -210,10 +195,14 @@ export default function SocialCardStudioPage() {
         link.click();
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(pngUrl), 10000);
-        setNotice('PNG downloaded. Compare it with the preview.');
-      }, 'image/png');
-    } catch {
-      setNotice('PNG export failed. Check the uploaded images and try again.');
+      } finally {
+        URL.revokeObjectURL(svgUrl);
+      }
+
+      setNotice('PNG downloaded from the live preview layout.');
+    } catch (error) {
+      console.error('Social card PNG export failed:', error);
+      setNotice('PNG export failed in this browser. Your design has not been changed.');
     }
   };
 
