@@ -54,6 +54,7 @@ export default function Sidebar() {
     { label: 'Header', href: '/admin/header', icon: 'Heading' },
     { label: 'Footer', href: '/admin/footer', icon: 'PanelBottom' },
     { label: 'Social Media', href: '/admin/social', icon: 'Share2' },
+    { label: 'Social Card Studio', href: '/admin/social-card-studio', icon: 'Image' },
     { label: 'Videos', href: '/admin/videos', icon: 'Video' },
     { label: 'Gallery', href: '/admin/gallery', icon: 'Image' },
     { label: 'Newsletter', href: '/admin/newsletter', icon: 'Mail' }, // New
