@@ -41,7 +41,7 @@ export default function SocialCardStudioPage() {
   const [templateName, setTemplateName] = useState('24 Ghonta default');
   const [savedTemplates, setSavedTemplates] = useState<{ name: string; layers: Layer[]; background: string; backgroundImage: string; cardSize: number }[]>([]);
   const [notice, setNotice] = useState('');
-  const [dragging, setDragging] = useState<{ id: string; startX: number; startY: number; x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState<{ id: string; mode: 'move' | 'resize'; startX: number; startY: number; x: number; y: number; width: number; height: number } | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -170,8 +170,8 @@ export default function SocialCardStudioPage() {
     if ((event.target as HTMLElement).closest('[data-editor-ui]')) return;
     event.preventDefault();
     setSelectedId(layer.id);
-    setDragging({ id: layer.id, startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y });
-    (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+    setDragging({ id: layer.id, mode: 'move', startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: layer.width, height: layer.height });
+    previewRef.current?.setPointerCapture(event.pointerId);
   };
 
   const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -179,7 +179,19 @@ export default function SocialCardStudioPage() {
     const bounds = previewRef.current.getBoundingClientRect();
     const dx = ((event.clientX - dragging.startX) / bounds.width) * 100;
     const dy = ((event.clientY - dragging.startY) / bounds.height) * 100;
-    updateLayer(dragging.id, { x: Math.max(0, Math.min(100, dragging.x + dx)), y: Math.max(0, Math.min(100, dragging.y + dy)) });
+    if (dragging.mode === 'resize') {
+      updateLayer(dragging.id, { width: Math.max(3, Math.min(100 - dragging.x, dragging.width + dx)), height: Math.max(3, Math.min(100 - dragging.y, dragging.height + dy)) });
+    } else {
+      updateLayer(dragging.id, { x: Math.max(0, Math.min(100 - dragging.width, dragging.x + dx)), y: Math.max(0, Math.min(100 - dragging.height, dragging.y + dy)) });
+    }
+  };
+
+  const startResize = (event: React.PointerEvent<HTMLButtonElement>, layer: Layer) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedId(layer.id);
+    setDragging({ id: layer.id, mode: 'resize', startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: layer.width, height: layer.height });
+    previewRef.current?.setPointerCapture(event.pointerId);
   };
 
   const finishDrag = () => setDragging(null);
@@ -203,7 +215,7 @@ export default function SocialCardStudioPage() {
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-semibold">Live preview <span className="font-normal text-gray-400">— drag any element to reposition</span></div>
+            <div className="text-sm font-semibold">Live preview <span className="font-normal text-gray-400">— drag to move; drag the blue corner to resize</span></div>
             <label className="flex items-center gap-2 text-xs text-gray-600">Preview size
               <select value={cardSize} onChange={(e) => setCardSize(Number(e.target.value))} className="rounded border px-2 py-1">
                 <option value={1080}>1080 × 1080</option><option value={1200}>1200 × 1200</option><option value={800}>800 × 800</option>
@@ -229,16 +241,20 @@ export default function SocialCardStudioPage() {
                   key={layer.id}
                   data-card-layer={layer.id}
                   onPointerDown={(event) => startDrag(event, layer)}
-                  onClick={() => setSelectedId(layer.id)}
+                  onClick={() => {
+                    setSelectedId(layer.id);
+                    if (layer.kind === 'image' && !layer.src) window.setTimeout(() => fileInputs.current[layer.id]?.click(), 0);
+                  }}
                   className={`absolute overflow-hidden ${selectedId === layer.id ? 'ring-2 ring-blue-500 ring-offset-1' : 'hover:ring-1 hover:ring-blue-300'}`}
                   style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, cursor: dragging?.id === layer.id ? 'grabbing' : 'grab' }}
                 >
                   {layer.kind === 'image' ? (
                     layer.src ? <img src={layer.src} alt={layer.name} draggable={false} className="h-full w-full object-cover" /> :
-                    <div className="flex h-full w-full items-center justify-center border-2 border-dashed border-gray-500/60 bg-white/40 text-center text-xs text-gray-600">{layer.name}<br />select and upload image</div>
+                    <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedId(layer.id); window.setTimeout(() => fileInputs.current[layer.id]?.click(), 0); }} className="flex h-full w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed border-gray-500/60 bg-white/40 text-center text-xs text-gray-700">{layer.name}<span className="mt-1 font-semibold underline">Click to choose image</span></button>
                   ) : (
                     <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
                   )}
+                  {selectedId === layer.id && <button type="button" data-editor-ui onPointerDown={(event) => startResize(event, layer)} aria-label={`Resize ${layer.name}`} title="Drag to resize" className="absolute bottom-0 right-0 z-10 h-5 w-5 cursor-nwse-resize rounded-tl-md border-2 border-white bg-blue-600 shadow" />}
                 </div>
               ))}
               <div data-editor-ui className="pointer-events-none absolute bottom-1 right-1 rounded bg-white/70 px-1 text-[9px] text-gray-500">EDITOR PREVIEW</div>
@@ -293,20 +309,14 @@ export default function SocialCardStudioPage() {
                   </select>
                 </label>
               </> : <>
-                <label className="mb-3 block text-xs font-medium">Image file (PNG/JPG/WebP)
+                <label className="mb-3 block text-xs font-medium">Choose / replace image
                   <input ref={(el) => { fileInputs.current[selected.id] = el; }} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => { const file = e.target.files?.[0]; if (file) readImage(file, (src) => updateLayer(selected.id, { src })); e.currentTarget.value = ''; }} className="mt-1 block w-full text-xs" />
                 </label>
                 <label className="mb-3 block text-xs font-medium">Image fit
                   <span className="mt-1 flex gap-2"><button onClick={() => { const node = document.querySelector(`[data-card-layer="${selected.id}"] img`) as HTMLImageElement | null; if (node) node.style.objectFit = 'cover'; }} className="rounded border px-3 py-1.5">Crop / fill</button><button onClick={() => { const node = document.querySelector(`[data-card-layer="${selected.id}"] img`) as HTMLImageElement | null; if (node) node.style.objectFit = 'contain'; }} className="rounded border px-3 py-1.5">Fit whole</button></span>
                 </label>
               </>}
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                {([['x', 'Left (%)'], ['y', 'Top (%)'], ['width', 'Width (%)'], ['height', 'Height (%)']] as const).map(([key, label]) => (
-                  <label key={key} className="text-xs font-medium">{label}
-                    <input type="number" min={0} max={100} step={0.5} value={selected[key]} onChange={(e) => updateLayer(selected.id, { [key]: Number(e.target.value) })} className="mt-1 w-full rounded border px-2 py-2" />
-                  </label>
-                ))}
-              </div>
+              <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">Move this element by dragging it on the card. Resize it by dragging the blue handle at its bottom-right corner.</p>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selected.visible} onChange={(e) => updateLayer(selected.id, { visible: e.target.checked })} /> Visible</label>
                 <button onClick={() => { setLayers((current) => current.filter((layer) => layer.id !== selected.id)); setSelectedId(layers.find((layer) => layer.id !== selected.id)?.id ?? ''); }} className="rounded border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50">Delete element</button>
