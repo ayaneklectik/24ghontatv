@@ -15,9 +15,10 @@ type SavedTemplate = { name: string; layers: Layer[]; background: string; cardSi
 type ArticleData = { title: string; image: string; date: string };
 const FONT = '"Noto Sans Bengali", "Hind Siliguri", sans-serif';
 const fonts = [
-  ['Noto Sans Bengali', '"Noto Sans Bengali", sans-serif'], ['Hind Siliguri', '"Hind Siliguri", sans-serif'],
+  ['Hind Siliguri', '"Hind Siliguri", sans-serif'], ['Hind Siliguri Bold', '"Hind Siliguri", sans-serif'],
+  ['Noto Sans Bengali', '"Noto Sans Bengali", sans-serif'], ['Noto Sans Bengali Bold', '"Noto Sans Bengali", sans-serif'],
   ['Noto Serif Bengali', '"Noto Serif Bengali", serif'], ['Anek Bangla', '"Anek Bangla", sans-serif'],
-  ['Tiro Bangla', '"Tiro Bangla", serif'], ['Baloo Da 2', '"Baloo Da 2", sans-serif'],
+  ['Tiro Bangla', '"Tiro Bangla", serif'], ['Baloo Da 2', '"Baloo Da 2", sans-serif'], ['Baloo Da 2 ExtraBold', '"Baloo Da 2", sans-serif'],
   ['Atma', '"Atma", cursive'], ['Galada', '"Galada", cursive'], ['Alkatra', '"Alkatra", cursive'],
   ['Mina', '"Mina", sans-serif'], ['Google Sans', '"Google Sans", sans-serif'],
   ['Kalpurush', '"Kalpurush", sans-serif'], ['SolaimanLipi', '"SolaimanLipi", "Kalpurush", sans-serif'],
@@ -114,6 +115,8 @@ export default function SocialCardStudio() {
   const [snap, setSnap] = useState(true);
   const [templateName, setTemplateName] = useState('Classic Bulletin');
   const [saved, setSaved] = useState<SavedTemplate[]>([]);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [presetNameDraft, setPresetNameDraft] = useState('');
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [tab, setTab] = useState<'templates' | 'layers' | 'text' | 'canvas'>('templates');
   const [filter, setFilter] = useState('All');
@@ -127,6 +130,11 @@ export default function SocialCardStudio() {
   const activeDesign = designs.find(d => d.name === templateName);
   const categories = ['All', ...Array.from(new Set(designs.map(d => d.category)))];
   const filteredDesigns = useMemo(() => filter === 'All' ? designs : designs.filter(d => d.category === filter), [filter]);
+
+  useEffect(() => {
+    const id = '24ghontatv-social-card-fonts';
+    if (!document.getElementById(id)) { const link = document.createElement('link'); link.id=id; link.rel='stylesheet'; link.href='https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800;900&family=Baloo+Da+2:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800;900&display=swap'; document.head.appendChild(link); }
+  }, []);
 
   useEffect(() => { try { const raw = localStorage.getItem('24ghontatv-social-card-templates'); if (raw) { const v = JSON.parse(raw); if (Array.isArray(v)) setSaved(v); } } catch {} }, []);
   useEffect(() => {
@@ -151,10 +159,13 @@ export default function SocialCardStudio() {
   };
   const addText = () => { const l = makeLayer('New text', 'নতুন লেখা', 20, 40, 60, 10, 28, '#171717', 700); l.id = id(); setLayers(p => [...p,l]); setSelectedId(l.id); setTab('text'); };
   const addImage = () => { const l: Layer = {id:id(),name:'Image / logo',kind:'image',src:'',x:32,y:35,width:36,height:22,fontSize:16,color:'#111111',fontWeight:500,align:'center',fontFamily:FONT,visible:true}; setLayers(p=>[...p,l]); setSelectedId(l.id); window.setTimeout(()=>fileRefs.current[l.id]?.click(),50); };
-  const saveTemplate = () => {
-    const name = templateName.trim() || 'Untitled design';
-    const next = [...saved.filter(t=>t.name!==name), {name,layers,background,cardSize}];
-    setSaved(next); try { localStorage.setItem('24ghontatv-social-card-templates', JSON.stringify(next)); setNotice('Saved “'+name+'” in this browser.'); } catch { setNotice('Could not save: browser storage may be full.'); }
+  const saveTemplate = () => { setPresetNameDraft(templateName.trim()); setShowSaveDialog(true); };
+  const confirmSaveTemplate = () => {
+    const name = presetNameDraft.trim();
+    if (!name) { setNotice('Enter a name for this preset first.'); return; }
+    const next = [...saved.filter(t=>t.name!==name), {name,layers:layers.map(l=>({...l})),background,cardSize}];
+    try { localStorage.setItem('24ghontatv-social-card-templates', JSON.stringify(next)); setSaved(next); setTemplateName(name); setShowSaveDialog(false); setNotice('Saved preset “'+name+'” in this browser.'); }
+    catch { setNotice('Could not save: browser storage may be full.'); }
   };
   const loadSaved = (name: string) => { const t = saved.find(s=>s.name===name); if (!t) return; const nextLayers = mergeArticleDataIntoLayers(t.layers, articleData); setLayers(nextLayers);setBackground(t.background);setCardSize(t.cardSize);setTemplateName(t.name);setSelectedId(nextLayers.find(l => l.kind === 'text' && /headline|title/i.test(l.name))?.id || nextLayers.find(l => l.kind === 'image')?.id || nextLayers[0]?.id || '');setNotice(articleData ? 'Applied saved preset “'+t.name+'” with the article headline and image. You can now edit any layer.' : 'Loaded '+t.name+'.'); };
   const exportPng = async () => {
@@ -169,7 +180,7 @@ export default function SocialCardStudio() {
     } catch(e) { const message = e instanceof Error ? e.message : String(e); setNotice('Export failed: '+message.slice(0,150)); }
     finally { setExporting(false); }
   };
-  const startDrag = (e: React.PointerEvent<HTMLElement>, l: Layer, mode: 'move'|'resize'='move') => {
+  const startDrag = (e: React.PointerEvent<HTMLElement>, l: Layer, mode: 'move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw'='move') => {
     if ((e.target as HTMLElement).closest('[data-editor-ui]') || l.locked) return;
     e.preventDefault(); e.stopPropagation(); setSelectedId(l.id);
     setDrag({id:l.id,x:l.x,y:l.y,px:e.clientX,py:e.clientY,w:l.width,h:l.height,mode});
@@ -179,8 +190,15 @@ export default function SocialCardStudio() {
     if (!drag || !canvasRef.current) return;
     const r=canvasRef.current.getBoundingClientRect(); let dx=(e.clientX-drag.px)/r.width*100; let dy=(e.clientY-drag.py)/r.height*100;
     if (snap) { dx=Math.round(dx*2)/2; dy=Math.round(dy*2)/2; }
-    if (drag.mode==='resize') update(drag.id,{width:Math.max(3,Math.min(100-drag.x,drag.w+dx)),height:Math.max(3,Math.min(100-drag.y,drag.h+dy))});
-    else {
+    if (drag.mode.startsWith('resize')) {
+      const west=drag.mode.includes('w'), east=drag.mode.includes('e'), north=drag.mode.includes('n'), south=drag.mode.includes('s');
+      let x=drag.x, y=drag.y, w=drag.w, h=drag.h;
+      if (east) w=Math.max(3,Math.min(100-drag.x,drag.w+dx));
+      if (south) h=Math.max(3,Math.min(100-drag.y,drag.h+dy));
+      if (west) { const right=drag.x+drag.w; x=Math.max(0,Math.min(right-3,drag.x+dx)); w=right-x; }
+      if (north) { const bottom=drag.y+drag.h; y=Math.max(0,Math.min(bottom-3,drag.y+dy)); h=bottom-y; }
+      update(drag.id,{x,y,width:w,height:h});
+    } else {
       let x=Math.max(0,Math.min(100-drag.w,drag.x+dx)), y=Math.max(0,Math.min(100-drag.h,drag.y+dy));
       if (snap) { if (Math.abs(x+drag.w/2-50)<1.2) x=50-drag.w/2; if (Math.abs(y+drag.h/2-50)<1.2) y=50-drag.h/2; if (Math.abs(x-5)<.7) x=5; if (Math.abs(y-5)<.7) y=5; }
       update(drag.id,{x,y});
@@ -227,7 +245,7 @@ export default function SocialCardStudio() {
               {layers.filter(l=>l.visible).map(l=><div key={l.id} data-card-layer={l.id} onPointerDown={e=>startDrag(e,l)} onClick={()=>setSelectedId(l.id)} className={'absolute '+(selectedId===l.id&&!exporting?'ring-2 ring-blue-500 ring-offset-1':'')+(!exporting?' cursor-move':'')} style={{left:l.x+'%',top:l.y+'%',width:l.width+'%',height:l.height+'%',opacity:l.opacity??1,transform:`rotate(${l.rotation||0}deg)`,transformOrigin:'center center',boxShadow:l.shadow?'0 10px 28px rgba(0,0,0,.28)':undefined,borderRadius:l.kind==='image'?(l.radius||0)+'px':undefined}}>
                 {l.kind==='image' ? (l.src?<img src={safeImage(l.src)} alt={l.name} draggable={false} className="h-full w-full object-cover" />:<button data-editor-ui onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();fileRefs.current[l.id]?.click()}} className="flex h-full w-full flex-col items-center justify-center border-2 border-dashed border-slate-400 bg-slate-100/90 text-center text-[clamp(8px,1.5cqw,16px)] font-semibold text-slate-500">＋<span>Upload photo</span></button>) :
                   <div className="flex h-full w-full items-center whitespace-pre-wrap break-words" style={{fontFamily:l.fontFamily,fontSize:'clamp(7px,'+(l.fontSize/10)+'cqw,90px)',color:l.color,fontWeight:l.fontWeight,textAlign:l.align,letterSpacing:(l.letterSpacing||0)+'px',lineHeight:l.lineHeight||1.12,justifyContent:l.align==='left'?'flex-start':l.align==='right'?'flex-end':'center',backgroundColor:l.backgroundColor??'transparent',padding:l.backgroundColor?'0.25em 0.45em':0,borderRadius:l.radius?l.radius+'px':0}}>{l.text}</div>}
-                {!exporting&&selectedId===l.id&&<><div data-editor-ui className="pointer-events-none absolute inset-0 border border-blue-500"/><button data-editor-ui aria-label="Resize layer" title="Drag to resize" onPointerDown={e=>startDrag(e,l,'resize')} className="absolute -bottom-1.5 -right-1.5 h-3.5 w-3.5 cursor-nwse-resize rounded-sm border-2 border-white bg-blue-600 shadow"/></>}
+                {!exporting&&selectedId===l.id&&<><div data-editor-ui className="pointer-events-none absolute inset-0 border border-blue-500"/>{([{p:'nw',mode:'resize-nw',c:'-top-1.5 -left-1.5 cursor-nwse-resize'},{p:'n',mode:'resize-n',c:'-top-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize'},{p:'ne',mode:'resize-ne',c:'-top-1.5 -right-1.5 cursor-nesw-resize'},{p:'e',mode:'resize-e',c:'top-1/2 -right-1.5 -translate-y-1/2 cursor-ew-resize'},{p:'se',mode:'resize-se',c:'-bottom-1.5 -right-1.5 cursor-nwse-resize'},{p:'s',mode:'resize-s',c:'-bottom-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize'},{p:'sw',mode:'resize-sw',c:'-bottom-1.5 -left-1.5 cursor-nesw-resize'},{p:'w',mode:'resize-w',c:'top-1/2 -left-1.5 -translate-y-1/2 cursor-ew-resize'}] as const).map(h=><button key={h.p} data-editor-ui aria-label={'Resize layer '+h.p} title={'Drag to resize '+h.p} onPointerDown={e=>{e.stopPropagation();startDrag(e,l,h.mode)}} className={'absolute z-30 h-3.5 w-3.5 touch-none rounded-sm border-2 border-white bg-blue-600 shadow '+h.c}/>)}</>}
               </div>)}
             </div>
           </div>
@@ -246,6 +264,7 @@ export default function SocialCardStudio() {
         {tab==='canvas'&&<div className="space-y-4 p-4"><label className="block text-[11px] font-semibold">Canvas background<input type="color" value={background} onChange={e=>setBackground(e.target.value)} className="mt-1.5 block h-10 w-full rounded-lg border p-1"/></label><label className="block text-[11px] font-semibold">Export dimensions<select value={cardSize} onChange={e=>setCardSize(Number(e.target.value))} className="mt-1.5 w-full rounded-lg border px-3 py-2.5 text-xs font-normal"><option value={1080}>1080 × 1080 · Square social post</option><option value={1200}>1200 × 1200 · High-res square</option><option value={1600}>1600 × 1600 · Print / archive</option></select></label><div className="rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600">Guides, rulers, selection outlines, and editing handles are for the workspace only and will not appear in your exported PNG.</div><button onClick={()=>{setLayers(makePreset(designs[1]));setBackground('#ffffff');setTemplateName('Classic Bulletin');setSelectedId('headline');setNotice('Canvas reset to Classic Bulletin.')}} className="w-full rounded-lg border border-red-200 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50">Reset design</button></div>}
       </aside>
     </main>
+    {showSaveDialog&&<div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={e=>{if(e.target===e.currentTarget)setShowSaveDialog(false)}}><div role="dialog" aria-modal="true" aria-labelledby="save-preset-title" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"><h2 id="save-preset-title" className="text-base font-bold">Save as a preset</h2><p className="mt-1 text-xs text-slate-500">Choose a name you can recognize when applying this design to another article.</p><label className="mt-4 block text-xs font-semibold">Preset name<input autoFocus value={presetNameDraft} onChange={e=>setPresetNameDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')confirmSaveTemplate();if(e.key==='Escape')setShowSaveDialog(false)}} placeholder="e.g. Breaking News Red" className="mt-1.5 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-purple-500"/></label>{saved.some(t=>t.name===presetNameDraft.trim())&&<p className="mt-2 text-xs text-amber-700">A preset with this name already exists. Saving will replace it.</p>}<div className="mt-5 flex justify-end gap-2"><button onClick={()=>setShowSaveDialog(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold">Cancel</button><button onClick={confirmSaveTemplate} className="rounded-lg bg-purple-700 px-4 py-2 text-xs font-bold text-white">Save preset</button></div></div></div>}
     <div className="hidden">{layers.filter(l=>l.kind==='image').map(l=><input key={l.id} ref={el=>{fileRefs.current[l.id]=el}} type="file" accept="image/*" onChange={e=>{const f=e.target.files?.[0];if(f)readImage(f,src=>update(l.id,{src}));e.currentTarget.value=''}}/>)}</div>
   </div>;
 }
