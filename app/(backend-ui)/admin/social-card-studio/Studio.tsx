@@ -148,7 +148,7 @@ export default function SocialCardStudio() {
     } catch(e) { const message = e instanceof Error ? e.message : String(e); setNotice('Export failed: '+message.slice(0,150)); }
     finally { setExporting(false); }
   };
-  const startDrag = (e: React.PointerEvent<HTMLDivElement>, l: Layer, mode: 'move'|'resize'='move') => {
+  const startDrag = (e: React.PointerEvent<HTMLElement>, l: Layer, mode: 'move'|'resize'='move') => {
     if ((e.target as HTMLElement).closest('[data-editor-ui]') || l.locked) return;
     e.preventDefault(); e.stopPropagation(); setSelectedId(l.id);
     setDrag({id:l.id,x:l.x,y:l.y,px:e.clientX,py:e.clientY,w:l.width,h:l.height,mode});
