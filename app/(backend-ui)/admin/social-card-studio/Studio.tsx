@@ -88,6 +88,7 @@ function mergeArticleDataIntoLayers(templateLayers: Layer[], article: ArticleDat
   const imageLayers = layers.filter(l => l.kind === 'image');
   const mainImage = imageLayers.find(l => /main photo|featured image|article image|hero image|cover photo|photo/i.test(l.name)) || imageLayers.sort((a,b) => (b.width*b.height)-(a.width*a.height))[0];
   if (mainImage && article.image) mainImage.src = article.image;
+  else if (!mainImage && article.image) layers.push({id:id(),name:'Main photo',kind:'image',src:article.image,x:5,y:52,width:90,height:35,fontSize:16,color:'#ffffff',fontWeight:500,align:'center',fontFamily:FONT,visible:true,radius:0});
   return layers;
 }
 
