@@ -39,7 +39,7 @@ const designs: Design[] = [
 ];
 const id = () => 'layer-' + Math.random().toString(36).slice(2, 10);
 const makeLayer = (name: string, text: string, x: number, y: number, width: number, height: number, size: number, color: string, weight = 800, bg?: string): Layer => ({
-  id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).slice(2, 5),
+  id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || id(),
   name, kind: 'text', text, x, y, width, height, fontSize: size, color, fontWeight: weight,
   align: 'left', fontFamily: FONT, backgroundColor: bg, visible: true, opacity: 1,
 });
