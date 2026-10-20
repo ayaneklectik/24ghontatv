@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { toPng } from 'html-to-image';
 
 type Layer = {
@@ -35,7 +34,6 @@ const initialLayers: Layer[] = [
 const newId = () => `layer-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 export default function SocialCardStudioPage() {
-  const searchParams = useSearchParams();
   const [layers, setLayers] = useState<Layer[]>(initialLayers);
   const [selectedId, setSelectedId] = useState('headline-black');
   const [background, setBackground] = useState('#e9e8e5');
@@ -51,13 +49,14 @@ export default function SocialCardStudioPage() {
   const loadedArticleRef = useRef('');
 
   useEffect(() => {
-    const articleId = searchParams.get('articleId');
+    const params = new URLSearchParams(window.location.search);
+    const articleId = params.get('articleId');
     if (!articleId || loadedArticleRef.current === articleId) return;
     loadedArticleRef.current = articleId;
 
-    const title = searchParams.get('title') ?? '';
-    const image = searchParams.get('image') ?? '';
-    const dateValue = searchParams.get('date') ?? '';
+    const title = params.get('title') ?? '';
+    const image = params.get('image') ?? '';
+    const dateValue = params.get('date') ?? '';
     const formattedDate = dateValue
       ? new Date(dateValue).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Dhaka' })
       : '';
@@ -73,7 +72,7 @@ export default function SocialCardStudioPage() {
     setNotice(image
       ? 'Article loaded. Review the headline and image, then edit the card and download the PNG.'
       : 'Article headline loaded. This article has no featured image, so add one before exporting.');
-  }, [searchParams]);
+  }, []);
 
   const selected = layers.find((layer) => layer.id === selectedId) ?? layers[0];
 
