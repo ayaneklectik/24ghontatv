@@ -191,8 +191,18 @@ export default function SocialCardStudioPage() {
       setNotice('PNG downloaded from the live preview.');
     } catch (error) {
       console.error('Social card PNG export failed:', error);
-      const reason = error instanceof Error ? error.message : 'Unknown export error';
-      setNotice(`PNG export failed: ${reason.slice(0, 140)}`);
+      // html-to-image can reject with a string or a plain object, not always an Error.
+      const detail = error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : error && typeof error === 'object' && 'message' in error
+            ? String((error as { message?: unknown }).message)
+            : (() => {
+                try { return JSON.stringify(error); } catch { return String(error); }
+              })();
+      const reason = detail && detail !== '{}' ? detail : Object.prototype.toString.call(error);
+      setNotice(`PNG export failed: ${reason.slice(0, 180)}`);
     } finally {
       setIsExporting(false);
     }
