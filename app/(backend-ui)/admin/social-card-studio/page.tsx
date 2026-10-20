@@ -33,6 +33,19 @@ const initialLayers: Layer[] = [
 
 const newId = () => `layer-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
+const exportSafeImageSrc = (src: string) => {
+  if (!src || src.startsWith('data:') || src.startsWith('blob:')) return src;
+  try {
+    const url = new URL(src, typeof window !== 'undefined' ? window.location.origin : 'https://www.24ghontatv.com');
+    if (url.protocol === 'https:' && ['api.24ghontatv.com', '24ghontatv.com', 'www.24ghontatv.com'].includes(url.hostname)) {
+      return `/api/social-card-image?url=${encodeURIComponent(url.toString())}`;
+    }
+  } catch {
+    // Keep unsupported image sources unchanged; export will surface a useful error.
+  }
+  return src;
+};
+
 export default function SocialCardStudioPage() {
   const [layers, setLayers] = useState<Layer[]>(initialLayers);
   const [selectedId, setSelectedId] = useState('headline-black');
@@ -293,7 +306,7 @@ export default function SocialCardStudioPage() {
                   style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, cursor: dragging?.id === layer.id ? 'grabbing' : 'grab' }}
                 >
                   {layer.kind === 'image' ? (
-                    layer.src ? <img src={layer.src} alt={layer.name} draggable={false} className="h-full w-full object-cover" /> :
+                    layer.src ? <img src={exportSafeImageSrc(layer.src)} alt={layer.name} draggable={false} crossOrigin="anonymous" className="h-full w-full object-cover" /> :
                     <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedId(layer.id); window.setTimeout(() => fileInputs.current[layer.id]?.click(), 0); }} className="flex h-full w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed border-gray-500/60 bg-white/40 text-center text-xs text-gray-700">{layer.name}<span className="mt-1 font-semibold underline">Click to choose image</span></button>
                   ) : (
                     <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
