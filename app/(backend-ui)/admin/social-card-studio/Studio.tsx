@@ -12,6 +12,7 @@ type Layer = {
 };
 type Design = { name: string; category: string; bg: string; accent: string; style: number };
 type SavedTemplate = { name: string; layers: Layer[]; background: string; cardSize: number };
+type ArticleData = { title: string; image: string; date: string };
 const FONT = '"Noto Sans Bengali", "Hind Siliguri", sans-serif';
 const fonts = [
   ['Noto Sans Bengali', '"Noto Sans Bengali", sans-serif'], ['Hind Siliguri', '"Hind Siliguri", sans-serif'],
@@ -73,6 +74,23 @@ function makePreset(p: Design): Layer[] {
     default: return [makeLayer('Magazine masthead', '২৪ঘণ্টা', 4, 2, 92, 12, 43, '#ffffff', 900), makeLayer('Feature label', 'THE BIG STORY  •  বিশেষ প্রতিবেদন', 5, 17, 90, 5, 14, p.accent, 900), photo, makeLayer('Cover headline', title, 5, 64, 90, 21, 35, '#ffffff', 900, '#18181bcc'), makeLayer('Cover footer', 'সংবাদ • বিশ্লেষণ • আরও অনেক কিছু', 5, 92, 90, 5, 13, '#d4d4d8', 600)];
   }
 }
+function mergeArticleDataIntoLayers(templateLayers: Layer[], article: ArticleData | null): Layer[] {
+  if (!article) return templateLayers.map(l => ({...l}));
+  const layers = templateLayers.map(l => ({...l}));
+  const textLayers = layers.filter(l => l.kind === 'text' && l.visible !== false && (l.text || '').trim());
+  const namedHeadline = textLayers.find(l => /headline|title|cover headline|story title/i.test(l.name));
+  const headline = namedHeadline || textLayers.filter(l => !/masthead|brand|footer|date|category|label|eyebrow|source|publication|logo|quote mark|breaking strip|alert|sports label/i.test(l.name)).sort((a,b) => b.fontSize-a.fontSize)[0] || textLayers.sort((a,b) => b.fontSize-a.fontSize)[0];
+  if (headline && article.title.trim()) headline.text = article.title;
+  if (article.date) {
+    const dateLayer = layers.find(l => l.kind === 'text' && /^(date|publish date|article date)$/i.test(l.name.trim()));
+    if (dateLayer) dateLayer.text = new Date(article.date).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Dhaka'});
+  }
+  const imageLayers = layers.filter(l => l.kind === 'image');
+  const mainImage = imageLayers.find(l => /main photo|featured image|article image|hero image|cover photo|photo/i.test(l.name)) || imageLayers.sort((a,b) => (b.width*b.height)-(a.width*a.height))[0];
+  if (mainImage && article.image) mainImage.src = article.image;
+  return layers;
+}
+
 const safeImage = (src: string) => {
   if (!src || src.startsWith('data:') || src.startsWith('blob:')) return src;
   try {
@@ -95,6 +113,7 @@ export default function SocialCardStudio() {
   const [snap, setSnap] = useState(true);
   const [templateName, setTemplateName] = useState('Classic Bulletin');
   const [saved, setSaved] = useState<SavedTemplate[]>([]);
+  const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [tab, setTab] = useState<'templates' | 'layers' | 'text' | 'canvas'>('templates');
   const [filter, setFilter] = useState('All');
   const [notice, setNotice] = useState('');
@@ -113,16 +132,17 @@ export default function SocialCardStudio() {
     const q = new URLSearchParams(window.location.search);
     const articleId = q.get('articleId');
     if (!articleId && !q.get('title') && !q.get('image')) return;
-    const title = q.get('title') || '';
-    const image = q.get('image') || '';
-    const date = q.get('date');
-    setLayers(prev => prev.map(l => l.name === 'Headline' ? {...l, text: title || l.text} : l.name === 'Main photo' ? {...l, src: image} : l.name === 'Date' && date ? {...l, text: new Date(date).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Dhaka'})} : l));
-    setNotice('Article details loaded. Review the card before exporting.');
+    const article = { title: q.get('title') || '', image: q.get('image') || '', date: q.get('date') || '' };
+    setArticleData(article);
+    setLayers(prev => mergeArticleDataIntoLayers(prev, article));
+    setNotice('Article loaded. Choose a saved preset to apply its design while keeping this headline and image.');
   }, []);
 
   const applyDesign = (design: Design) => {
-    setLayers(makePreset(design)); setBackground(design.bg); setTemplateName(design.name);
-    setSelectedId('headline'); setNotice('Applied ' + design.name + '. Add your photo and edit the headline.');
+    const presetLayers = makePreset(design);
+    setLayers(mergeArticleDataIntoLayers(presetLayers, articleData)); setBackground(design.bg); setTemplateName(design.name);
+    setSelectedId(presetLayers.find(l => l.kind === 'text' && /headline|title/i.test(l.name))?.id || presetLayers[0]?.id || '');
+    setNotice(articleData ? 'Applied ' + design.name + ' with the article headline and image.' : 'Applied ' + design.name + '. You can edit the headline and add a photo.');
   };
   const readImage = (file: File, cb: (src:string)=>void) => {
     if (!file.type.startsWith('image/')) { setNotice('Choose an image file such as PNG, JPG, or WebP.'); return; }
@@ -135,7 +155,7 @@ export default function SocialCardStudio() {
     const next = [...saved.filter(t=>t.name!==name), {name,layers,background,cardSize}];
     setSaved(next); try { localStorage.setItem('24ghontatv-social-card-templates', JSON.stringify(next)); setNotice('Saved “'+name+'” in this browser.'); } catch { setNotice('Could not save: browser storage may be full.'); }
   };
-  const loadSaved = (name: string) => { const t = saved.find(s=>s.name===name); if (!t) return; setLayers(t.layers);setBackground(t.background);setCardSize(t.cardSize);setTemplateName(t.name);setSelectedId(t.layers[0]?.id || '');setNotice('Loaded '+t.name+'.'); };
+  const loadSaved = (name: string) => { const t = saved.find(s=>s.name===name); if (!t) return; const nextLayers = mergeArticleDataIntoLayers(t.layers, articleData); setLayers(nextLayers);setBackground(t.background);setCardSize(t.cardSize);setTemplateName(t.name);setSelectedId(nextLayers.find(l => l.kind === 'text' && /headline|title/i.test(l.name))?.id || nextLayers.find(l => l.kind === 'image')?.id || nextLayers[0]?.id || '');setNotice(articleData ? 'Applied saved preset “'+t.name+'” with the article headline and image. You can now edit any layer.' : 'Loaded '+t.name+'.'); };
   const exportPng = async () => {
     if (!canvasRef.current || exporting) return;
     setExporting(true); setNotice('Preparing high-resolution PNG…');
@@ -178,7 +198,7 @@ export default function SocialCardStudio() {
       <div className="flex min-h-[66px] flex-wrap items-center gap-3 px-4 py-2 lg:px-6">
         <div className="flex items-center gap-3 mr-auto"><div className="grid h-10 w-10 place-items-center rounded-xl bg-red-600 text-sm font-black text-white">২৪</div><div><h1 className="text-sm font-bold">Social Card Studio</h1><p className="text-[11px] text-slate-500">Design workspace · 24GhontaTV</p></div></div>
         <input aria-label="Design name" value={templateName} onChange={e=>setTemplateName(e.target.value)} className="h-9 w-40 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-red-400 sm:w-48"/>
-        <select aria-label="Load saved design" value="" onChange={e=>loadSaved(e.target.value)} className="h-9 max-w-36 rounded-lg border border-slate-200 bg-white px-2 text-xs"><option value="">My designs ({saved.length})</option>{saved.map(t=><option key={t.name} value={t.name}>{t.name}</option>)}</select>
+        <select aria-label="Apply saved preset to article" value="" onChange={e=>{if(e.target.value)loadSaved(e.target.value);e.currentTarget.value='';}} className="h-9 max-w-48 rounded-lg border border-purple-200 bg-purple-50 px-2 text-xs font-semibold text-purple-800"><option value="">Apply saved preset ({saved.length})…</option>{saved.map(t=><option key={t.name} value={t.name}>{t.name}</option>)}</select>
         <button onClick={saveTemplate} className="h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold hover:bg-slate-50">▣ Save</button>
         <button onClick={exportPng} disabled={exporting} className="h-9 rounded-lg bg-red-600 px-4 text-xs font-bold text-white shadow-sm hover:bg-red-700 disabled:opacity-60">{exporting?'Preparing…':'↓ Export PNG'}</button>
       </div>
