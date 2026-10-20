@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
 
 type Layer = {
   id: string;
@@ -113,101 +114,65 @@ export default function SocialCardStudioPage() {
     }
 
     setNotice('Preparing PNG export…');
+    let exportClone: HTMLDivElement | null = null;
     try {
-      // Export the actual preview DOM rather than drawing a second, approximate version
-      // of the design. This preserves the browser's Bengali shaping, line wrapping,
-      // font sizing, image cropping, and CSS layout.
       await document.fonts.ready;
       const bounds = preview.getBoundingClientRect();
       const sourceWidth = Math.max(1, Math.round(bounds.width));
       const sourceHeight = Math.max(1, Math.round(bounds.height));
-      const clone = preview.cloneNode(true) as HTMLDivElement;
+      exportClone = preview.cloneNode(true) as HTMLDivElement;
 
-      // Inline computed styles recursively so Tailwind classes and inherited styles
-      // remain available inside the standalone SVG used for rasterization. Do this
-      // before removing editor controls so source/clone child indexes stay aligned.
-      const inlineStyles = (source: Element, target: Element) => {
-        const computed = window.getComputedStyle(source);
-        const targetStyle = (target as HTMLElement | SVGElement).style;
-        for (let index = 0; index < computed.length; index += 1) {
-          const property = computed.item(index);
-          targetStyle.setProperty(property, computed.getPropertyValue(property), computed.getPropertyPriority(property));
-        }
-        const sourceChildren = Array.from(source.children);
-        const targetChildren = Array.from(target.children);
-        sourceChildren.forEach((child, index) => {
-          if (targetChildren[index]) inlineStyles(child, targetChildren[index]);
-        });
-      };
-      inlineStyles(preview, clone);
-
-      // Remove editor-only controls and selection handles from the exported artwork.
-      clone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
-      clone.querySelectorAll('[data-card-layer]').forEach((element) => {
+      // Keep the preview's real browser layout, but remove editor-only controls.
+      // html-to-image handles computed CSS, fonts, and image embedding for rasterization.
+      exportClone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
+      exportClone.querySelectorAll('[data-card-layer]').forEach((element) => {
         const layer = element as HTMLElement;
         layer.style.boxShadow = 'none';
         layer.style.outline = 'none';
         layer.style.setProperty('--tw-ring-offset-shadow', '0 0 #0000');
         layer.style.setProperty('--tw-ring-shadow', '0 0 #0000');
+        layer.className = layer.className
+          .split(/\\s+/)
+          .filter((className) => !/^(ring-|outline-|shadow-)/.test(className))
+          .join(' ');
       });
 
-      // Lock the clone to the exact preview dimensions. Rasterize that same layout
-      // at the requested output resolution, rather than recomputing any text layout.
-      clone.style.width = `${sourceWidth}px`;
-      clone.style.height = `${sourceHeight}px`;
-      clone.style.minWidth = `${sourceWidth}px`;
-      clone.style.minHeight = `${sourceHeight}px`;
-      clone.style.maxWidth = 'none';
-      clone.style.maxHeight = 'none';
-      clone.style.aspectRatio = 'auto';
-      clone.style.position = 'relative';
-      clone.style.margin = '0';
-      clone.style.transform = 'none';
-      clone.style.containerType = 'normal';
+      exportClone.style.position = 'fixed';
+      exportClone.style.left = '-100000px';
+      exportClone.style.top = '0';
+      exportClone.style.width = `${sourceWidth}px`;
+      exportClone.style.height = `${sourceHeight}px`;
+      exportClone.style.minWidth = `${sourceWidth}px`;
+      exportClone.style.minHeight = `${sourceHeight}px`;
+      exportClone.style.maxWidth = 'none';
+      exportClone.style.maxHeight = 'none';
+      exportClone.style.margin = '0';
+      exportClone.style.transform = 'none';
+      exportClone.style.pointerEvents = 'none';
+      document.body.appendChild(exportClone);
 
-      const serialized = new XMLSerializer().serializeToString(clone);
-      // XMLSerializer may already include the XHTML namespace; duplicate xmlns
-      // attributes make the SVG invalid and cause the browser's image load to fail.
-      const xhtml = /\sxmlns=/.test(serialized)
-        ? serialized
-        : serialized.replace(/^<div/, '<div xmlns="http://www.w3.org/1999/xhtml"');
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cardSize}" height="${cardSize}" viewBox="0 0 ${sourceWidth} ${sourceHeight}"><foreignObject width="${sourceWidth}" height="${sourceHeight}">${xhtml}</foreignObject></svg>`;
-      const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+      const dataUrl = await toPng(exportClone, {
+        pixelRatio: cardSize / sourceWidth,
+        cacheBust: true,
+        backgroundColor: background,
+        width: sourceWidth,
+        height: sourceHeight,
+        filter: (node) => !(node instanceof HTMLElement && node.hasAttribute('data-editor-ui')),
+      });
 
-      try {
-        const image = new Image();
-        await new Promise<void>((resolve, reject) => {
-          image.onload = () => resolve();
-          image.onerror = () => reject(new Error('Preview could not be rasterized'));
-          image.src = svgUrl;
-        });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = cardSize;
-        canvas.height = cardSize;
-        const context = canvas.getContext('2d');
-        if (!context) throw new Error('Canvas is unavailable');
-        context.drawImage(image, 0, 0, cardSize, cardSize);
-
-        const png = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG encoding failed')), 'image/png');
-        });
-        const pngUrl = URL.createObjectURL(png);
-        const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = '24ghontatv-social-card.png';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(pngUrl), 10000);
-      } finally {
-        URL.revokeObjectURL(svgUrl);
-      }
-
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = '24ghontatv-social-card.png';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       setNotice('PNG downloaded from the live preview layout.');
     } catch (error) {
       console.error('Social card PNG export failed:', error);
-      setNotice('PNG export failed in this browser. Your design has not been changed.');
+      const reason = error instanceof Error ? error.message : 'Unknown export error';
+      setNotice(`PNG export failed: ${reason.slice(0, 110)}`);
+    } finally {
+      exportClone?.remove();
     }
   };
 
