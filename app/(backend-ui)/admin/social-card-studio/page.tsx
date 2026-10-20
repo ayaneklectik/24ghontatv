@@ -123,18 +123,9 @@ export default function SocialCardStudioPage() {
       const sourceHeight = Math.max(1, Math.round(bounds.height));
       const clone = preview.cloneNode(true) as HTMLDivElement;
 
-      // Remove editor-only controls and selection handles from the exported artwork.
-      clone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
-      clone.querySelectorAll('[data-card-layer]').forEach((element) => {
-        const layer = element as HTMLElement;
-        layer.style.boxShadow = 'none';
-        layer.style.outline = 'none';
-        layer.style.setProperty('--tw-ring-offset-shadow', '0 0 #0000');
-        layer.style.setProperty('--tw-ring-shadow', '0 0 #0000');
-      });
-
       // Inline computed styles recursively so Tailwind classes and inherited styles
-      // remain available inside the standalone SVG used for rasterization.
+      // remain available inside the standalone SVG used for rasterization. Do this
+      // before removing editor controls so source/clone child indexes stay aligned.
       const inlineStyles = (source: Element, target: Element) => {
         const computed = window.getComputedStyle(source);
         const targetStyle = (target as HTMLElement | SVGElement).style;
@@ -149,6 +140,16 @@ export default function SocialCardStudioPage() {
         });
       };
       inlineStyles(preview, clone);
+
+      // Remove editor-only controls and selection handles from the exported artwork.
+      clone.querySelectorAll('[data-editor-ui]').forEach((element) => element.remove());
+      clone.querySelectorAll('[data-card-layer]').forEach((element) => {
+        const layer = element as HTMLElement;
+        layer.style.boxShadow = 'none';
+        layer.style.outline = 'none';
+        layer.style.setProperty('--tw-ring-offset-shadow', '0 0 #0000');
+        layer.style.setProperty('--tw-ring-shadow', '0 0 #0000');
+      });
 
       // Lock the clone to the exact preview dimensions. Rasterize that same layout
       // at the requested output resolution, rather than recomputing any text layout.
@@ -165,7 +166,11 @@ export default function SocialCardStudioPage() {
       clone.style.containerType = 'normal';
 
       const serialized = new XMLSerializer().serializeToString(clone);
-      const xhtml = serialized.replace(/^<div/, '<div xmlns="http://www.w3.org/1999/xhtml"');
+      // XMLSerializer may already include the XHTML namespace; duplicate xmlns
+      // attributes make the SVG invalid and cause the browser's image load to fail.
+      const xhtml = /\sxmlns=/.test(serialized)
+        ? serialized
+        : serialized.replace(/^<div/, '<div xmlns="http://www.w3.org/1999/xhtml"');
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cardSize}" height="${cardSize}" viewBox="0 0 ${sourceWidth} ${sourceHeight}"><foreignObject width="${sourceWidth}" height="${sourceHeight}">${xhtml}</foreignObject></svg>`;
       const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 
