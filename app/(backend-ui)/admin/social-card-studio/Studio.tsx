@@ -11,7 +11,7 @@ type Layer = {
   rotation?: number; letterSpacing?: number; lineHeight?: number; shadow?: boolean; locked?: boolean;
 };
 type Design = { name: string; category: string; bg: string; accent: string; style: number };
-type SavedTemplate = { name: string; layers: Layer[]; background: string; cardSize: number };
+type SavedTemplate = { name: string; layers: Layer[]; background: string; cardSize: number; texture?: string };
 type ArticleData = { title: string; image: string; date: string };
 const FONT = '"Noto Sans Bengali", "Hind Siliguri", sans-serif';
 const fonts = [
@@ -106,6 +106,8 @@ export default function SocialCardStudio() {
   const [layers, setLayers] = useState<Layer[]>(() => makePreset(designs[1]));
   const [selectedId, setSelectedId] = useState('headline');
   const [background, setBackground] = useState('#ffffff');
+  const [texture, setTexture] = useState('none');
+  const [selectedIds, setSelectedIds] = useState<string[]>(['headline']);
   const [cardSize, setCardSize] = useState(1080);
   const [zoom, setZoom] = useState(78);
   const [safeArea, setSafeArea] = useState(true);
@@ -122,10 +124,36 @@ export default function SocialCardStudio() {
   const [filter, setFilter] = useState('All');
   const [notice, setNotice] = useState('');
   const [exporting, setExporting] = useState(false);
-  const [drag, setDrag] = useState<{id:string; x:number;y:number;px:number;py:number;w:number;h:number;mode:'move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw'}|null>(null);
+  const [drag, setDrag] = useState<{id:string;x:number;y:number;px:number;py:number;w:number;h:number;mode:'move'|'group-move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw';items:{id:string;x:number;y:number;width:number;height:number}[];group?:{x:number;y:number;w:number;h:number}}|null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const selected = layers.find(l => l.id === selectedId) ?? layers[0];
+  const selectedLayers = layers.filter(l => selectedIds.includes(l.id));
+  const selectionBounds = selectedLayers.length > 1 ? (() => { const x=Math.min(...selectedLayers.map(l=>l.x)), y=Math.min(...selectedLayers.map(l=>l.y)), right=Math.max(...selectedLayers.map(l=>l.x+l.width)), bottom=Math.max(...selectedLayers.map(l=>l.y+l.height)); return {x,y,w:right-x,h:bottom-y}; })() : null;
+  const textures: {name:string;value:string;image?:string;size?:string;position?:string}[] = [
+    {name:'None',value:'none'},
+    {name:'Fine grain',value:'grain',image:'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 180 180\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'.9\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'.17\'/%3E%3C/svg%3E")'},
+    {name:'Diagonal lines',value:'diagonal',image:'repeating-linear-gradient(135deg, #0000000a 0 1px, transparent 1px 8px)'},
+    {name:'Crosshatch',value:'crosshatch',image:'repeating-linear-gradient(0deg, #0000000a 0 1px, transparent 1px 12px),repeating-linear-gradient(90deg, #0000000a 0 1px, transparent 1px 12px)'},
+    {name:'Tiny dots',value:'dots',image:'radial-gradient(#00000020 0.8px, transparent 0.8px)',size:'12px 12px'},
+    {name:'Big dots',value:'big-dots',image:'radial-gradient(#00000018 1.6px, transparent 1.6px)',size:'22px 22px'},
+    {name:'Graph paper',value:'graph',image:'linear-gradient(#00000012 1px, transparent 1px),linear-gradient(90deg,#00000012 1px,transparent 1px)',size:'24px 24px'},
+    {name:'Blueprint',value:'blueprint',image:'linear-gradient(#ffffff14 1px, transparent 1px),linear-gradient(90deg,#ffffff14 1px,transparent 1px),linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px)',size:'40px 40px,40px 40px,8px 8px,8px 8px'},
+    {name:'Horizontal stripes',value:'stripes',image:'repeating-linear-gradient(0deg,#0000000c 0 2px,transparent 2px 10px)'},
+    {name:'Vertical stripes',value:'vertical',image:'repeating-linear-gradient(90deg,#0000000c 0 2px,transparent 2px 10px)'},
+    {name:'Soft waves',value:'waves',image:'repeating-radial-gradient(ellipse at 0 0,transparent 0 10px,#0000000b 11px 12px,transparent 13px 24px)'},
+    {name:'Concentric rings',value:'rings',image:'repeating-radial-gradient(circle at center,transparent 0 12px,#00000010 13px 14px,transparent 15px 25px)'},
+    {name:'Diagonal cross',value:'diagonal-cross',image:'repeating-linear-gradient(45deg,transparent 0 9px,#0000000b 9px 10px),repeating-linear-gradient(-45deg,transparent 0 9px,#0000000b 9px 10px)'},
+    {name:'Linen',value:'linen',image:'repeating-linear-gradient(0deg,#00000009 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#00000008 0 1px,transparent 1px 4px)'},
+    {name:'Marble-like',value:'marble',image:'radial-gradient(ellipse at 20% 20%,#ffffff40,transparent 40%),repeating-linear-gradient(125deg,transparent 0 30px,#0000000a 31px 32px,transparent 33px 65px)'},
+    {name:'Paper fibers',value:'paper',image:'repeating-linear-gradient(12deg,#00000007 0 1px,transparent 1px 5px),repeating-linear-gradient(92deg,#00000005 0 1px,transparent 1px 7px)'},
+    {name:'Halftone',value:'halftone',image:'radial-gradient(#00000018 1px,transparent 1.3px)',size:'5px 5px'},
+    {name:'Checkerboard',value:'checker',image:'conic-gradient(#0000000a 25%,transparent 0 50%,#0000000a 0 75%,transparent 0)',size:'20px 20px'},
+    {name:'Topographic',value:'topographic',image:'repeating-radial-gradient(ellipse at 50% 50%,transparent 0 12px,#0000000b 13px 14px,transparent 15px 24px)'},
+    {name:'Sunburst',value:'sunburst',image:'repeating-conic-gradient(from 0deg at 50% 50%,#00000008 0deg 2deg,transparent 2deg 12deg)'},
+    {name:'Soft vignette',value:'vignette',image:'radial-gradient(ellipse at center,transparent 35%,#00000020 100%)'},
+  ];
+  const textureStyle = (value:string) => { const t=textures.find(item=>item.value===value); return t?.image ? {backgroundImage:t.image,backgroundSize:t.size||'auto',backgroundPosition:t.position||'center'} : {}; };
   const update = (layerId: string, patch: Partial<Layer>) => setLayers(prev => prev.map(l => l.id === layerId ? {...l, ...patch} : l));
   const activeDesign = designs.find(d => d.name === templateName);
   const categories = ['All', ...Array.from(new Set(designs.map(d => d.category)))];
@@ -163,11 +191,11 @@ export default function SocialCardStudio() {
   const confirmSaveTemplate = () => {
     const name = presetNameDraft.trim();
     if (!name) { setNotice('Enter a name for this preset first.'); return; }
-    const next = [...saved.filter(t=>t.name!==name), {name,layers:layers.map(l=>({...l})),background,cardSize}];
+    const next = [...saved.filter(t=>t.name!==name), {name,layers:layers.map(l=>({...l})),background,cardSize,texture}];
     try { localStorage.setItem('24ghontatv-social-card-templates', JSON.stringify(next)); setSaved(next); setTemplateName(name); setShowSaveDialog(false); setNotice('Saved preset “'+name+'” in this browser.'); }
     catch { setNotice('Could not save: browser storage may be full.'); }
   };
-  const loadSaved = (name: string) => { const t = saved.find(s=>s.name===name); if (!t) return; const nextLayers = mergeArticleDataIntoLayers(t.layers, articleData); setLayers(nextLayers);setBackground(t.background);setCardSize(t.cardSize);setTemplateName(t.name);setSelectedId(nextLayers.find(l => l.kind === 'text' && /headline|title/i.test(l.name))?.id || nextLayers.find(l => l.kind === 'image')?.id || nextLayers[0]?.id || '');setNotice(articleData ? 'Applied saved preset “'+t.name+'” with the article headline and image. You can now edit any layer.' : 'Loaded '+t.name+'.'); };
+  const loadSaved = (name: string) => { const t = saved.find(s=>s.name===name); if (!t) return; const nextLayers = mergeArticleDataIntoLayers(t.layers, articleData); setLayers(nextLayers);setBackground(t.background);setTexture(t.texture||'none');setCardSize(t.cardSize);setTemplateName(t.name);setSelectedId(nextLayers.find(l => l.kind === 'text' && /headline|title/i.test(l.name))?.id || nextLayers.find(l => l.kind === 'image')?.id || nextLayers[0]?.id || '');setNotice(articleData ? 'Applied saved preset “'+t.name+'” with the article headline and image. You can now edit any layer.' : 'Loaded '+t.name+'.'); };
   const exportPng = async () => {
     if (!canvasRef.current || exporting) return;
     setExporting(true); setNotice('Preparing high-resolution PNG…');
