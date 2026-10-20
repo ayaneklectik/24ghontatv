@@ -122,7 +122,7 @@ export default function SocialCardStudio() {
   const [filter, setFilter] = useState('All');
   const [notice, setNotice] = useState('');
   const [exporting, setExporting] = useState(false);
-  const [drag, setDrag] = useState<{id:string; x:number;y:number;px:number;py:number;w:number;h:number;mode:'move'|'resize'}|null>(null);
+  const [drag, setDrag] = useState<{id:string; x:number;y:number;px:number;py:number;w:number;h:number;mode:'move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw'}|null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const selected = layers.find(l => l.id === selectedId) ?? layers[0];
@@ -181,7 +181,8 @@ export default function SocialCardStudio() {
     finally { setExporting(false); }
   };
   const startDrag = (e: React.PointerEvent<HTMLElement>, l: Layer, mode: 'move'|'resize-n'|'resize-ne'|'resize-e'|'resize-se'|'resize-s'|'resize-sw'|'resize-w'|'resize-nw'='move') => {
-    if ((e.target as HTMLElement).closest('[data-editor-ui]') || l.locked) return;
+    const target = e.target as HTMLElement;
+    if ((target.closest('[data-editor-ui]') && !target.closest('[aria-label^="Resize layer"]')) || l.locked) return;
     e.preventDefault(); e.stopPropagation(); setSelectedId(l.id);
     setDrag({id:l.id,x:l.x,y:l.y,px:e.clientX,py:e.clientY,w:l.width,h:l.height,mode});
     e.currentTarget.setPointerCapture?.(e.pointerId);
