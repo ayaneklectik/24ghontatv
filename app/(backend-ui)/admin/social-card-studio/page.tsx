@@ -108,101 +108,112 @@ export default function SocialCardStudioPage() {
   const exportPng = async () => {
     setNotice('Preparing PNG export…');
     try {
-      const escapeXml = (value: string) => value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+      const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Image could not be loaded'));
+        image.src = src;
+      });
 
-      const wrapText = (value: string, maxChars: number) => {
-        const result: string[] = [];
-        for (const paragraph of value.split('\\n')) {
-          const words = paragraph.split(/\\s+/).filter(Boolean);
-          if (!words.length) {
-            result.push('');
-            continue;
+      const canvas = document.createElement('canvas');
+      canvas.width = cardSize;
+      canvas.height = cardSize;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas is unavailable');
+
+      context.fillStyle = background;
+      context.fillRect(0, 0, cardSize, cardSize);
+      if (backgroundImage) {
+        const image = await loadImage(backgroundImage);
+        const scale = Math.max(cardSize / image.width, cardSize / image.height);
+        const width = image.width * scale;
+        const height = image.height * scale;
+        context.drawImage(image, (cardSize - width) / 2, (cardSize - height) / 2, width, height);
+      } else {
+        context.fillStyle = 'rgba(0,0,0,0.045)';
+        for (let y = 1; y < cardSize; y += 5) {
+          for (let x = 1; x < cardSize; x += 5) {
+            context.beginPath();
+            context.arc(x, y, 0.7, 0, Math.PI * 2);
+            context.fill();
           }
-          let line = '';
-          for (const word of words) {
-            const candidate = line ? `${line} ${word}` : word;
-            if (line && candidate.length > maxChars) {
-              result.push(line);
-              line = word;
-            } else {
-              line = candidate;
-            }
-          }
-          result.push(line);
         }
-        return result;
-      };
+      }
 
-      const backgroundMarkup = backgroundImage
-        ? `<image href="${backgroundImage}" x="0" y="0" width="${cardSize}" height="${cardSize}" preserveAspectRatio="xMidYMid slice"/>`
-        : `<rect width="${cardSize}" height="${cardSize}" fill="${background}"/><rect width="${cardSize}" height="${cardSize}" fill="url(#texture)"/>`;
-
-      const layerMarkup = layers.filter((layer) => layer.visible).map((layer) => {
+      for (const layer of layers.filter((item) => item.visible)) {
         const x = layer.x / 100 * cardSize;
         const y = layer.y / 100 * cardSize;
         const width = layer.width / 100 * cardSize;
         const height = layer.height / 100 * cardSize;
+
+        context.save();
+        context.beginPath();
+        context.rect(x, y, width, height);
+        context.clip();
+
         if (layer.kind === 'image') {
-          if (!layer.src) return '';
-          return `<image href="${layer.src}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>`;
+          if (layer.src) {
+            const image = await loadImage(layer.src);
+            const scale = Math.max(width / image.width, height / image.height);
+            const drawWidth = image.width * scale;
+            const drawHeight = image.height * scale;
+            context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+          }
+          context.restore();
+          continue;
         }
 
         const fontSize = layer.fontSize * cardSize / 1000;
-        const maxChars = Math.max(1, Math.floor(width / Math.max(fontSize * 0.72, 1)));
-        const lines = wrapText(layer.text ?? '', maxChars);
-        const lineHeight = fontSize * 1.08;
-        const totalHeight = lines.length * lineHeight;
-        const firstBaseline = y + Math.max(fontSize, (height - totalHeight) / 2 + fontSize * 0.82);
-        const anchor = layer.align === 'left' ? 'start' : layer.align === 'right' ? 'end' : 'middle';
-        const textX = layer.align === 'left' ? x : layer.align === 'right' ? x + width : x + width / 2;
-        const tspans = lines.map((line, index) => `<tspan x="${textX}" y="${firstBaseline + index * lineHeight}">${escapeXml(line)}</tspan>`).join('');
-        return `<text font-family="${escapeXml(layer.fontFamily)}" font-size="${fontSize}" font-weight="${layer.fontWeight}" fill="${layer.color}" text-anchor="${anchor}">${tspans}</text>`;
-      }).join('');
+        const lineHeight = fontSize * 1.05;
+        context.font = `${layer.fontWeight} ${fontSize}px ${layer.fontFamily}`;
+        context.fillStyle = layer.color;
+        context.textAlign = layer.align;
+        context.textBaseline = 'alphabetic';
 
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${cardSize}" height="${cardSize}" viewBox="0 0 ${cardSize} ${cardSize}"><defs><pattern id="texture" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.7" fill="#000000" opacity="0.05"/></pattern></defs>${backgroundMarkup}${layerMarkup}</svg>`;
-      const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-      const image = new Image();
-      image.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = cardSize;
-          canvas.height = cardSize;
-          const context = canvas.getContext('2d');
-          if (!context) throw new Error('Canvas is unavailable');
-          context.drawImage(image, 0, 0, cardSize, cardSize);
-          canvas.toBlob((png) => {
-            URL.revokeObjectURL(svgUrl);
-            if (!png) {
-              setNotice('PNG export failed. Please try again with uploaded image files.');
-              return;
+        const paragraphs = (layer.text ?? '').split('\n');
+        const lines: string[] = [];
+        for (const paragraph of paragraphs) {
+          if (!paragraph) {
+            lines.push('');
+            continue;
+          }
+          let line = '';
+          for (const character of Array.from(paragraph)) {
+            const candidate = line + character;
+            if (line && context.measureText(candidate).width > width) {
+              lines.push(line);
+              line = character;
+            } else {
+              line = candidate;
             }
-            const pngUrl = URL.createObjectURL(png);
-            const link = document.createElement('a');
-            link.href = pngUrl;
-            link.download = '24ghontatv-social-card.png';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.setTimeout(() => URL.revokeObjectURL(pngUrl), 10000);
-            setNotice('PNG downloaded. Check your Downloads folder.');
-          }, 'image/png');
-        } catch {
-          URL.revokeObjectURL(svgUrl);
-          setNotice('PNG export failed. Please try again.');
+          }
+          lines.push(line);
         }
-      };
-      image.onerror = () => {
-        URL.revokeObjectURL(svgUrl);
-        setNotice('The card could not be rendered for PNG export. Please check the uploaded images and try again.');
-      };
-      image.src = svgUrl;
+
+        const totalHeight = lines.length * lineHeight;
+        const firstBaseline = y + (height - totalHeight) / 2 + fontSize * 0.82;
+        const textX = layer.align === 'left' ? x : layer.align === 'right' ? x + width : x + width / 2;
+        lines.forEach((line, index) => context.fillText(line, textX, firstBaseline + index * lineHeight, width));
+        context.restore();
+      }
+
+      canvas.toBlob((png) => {
+        if (!png) {
+          setNotice('PNG export failed. Please try again.');
+          return;
+        }
+        const pngUrl = URL.createObjectURL(png);
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = '24ghontatv-social-card.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(pngUrl), 10000);
+        setNotice('PNG downloaded. Compare it with the preview.');
+      }, 'image/png');
     } catch {
-      setNotice('PNG export failed. Please try again.');
+      setNotice('PNG export failed. Check the uploaded images and try again.');
     }
   };
 
