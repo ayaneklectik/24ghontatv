@@ -7,7 +7,7 @@ import { fetchAdminNews, setNewsFlag, type AdminNews } from '@/lib/admin-api';
 import { retryAlternateMediaHost } from '@/lib/urls';
 import { 
   FaMagnifyingGlass, FaPen, FaTrash, FaEye, 
-  FaFolder, FaBolt, FaStar, FaPlus, FaCheckDouble, FaXmark 
+  FaFolder, FaBolt, FaStar, FaPlus, FaCheckDouble, FaXmark, FaImage 
 } from 'react-icons/fa6';
 
 // DB News Data Structure
@@ -512,6 +512,22 @@ export default function ManagePostsPage() {
                           className="inline-block p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded transition"
                         >
                           <FaPen />
+                        </Link>
+                        <Link
+                          href={{
+                            pathname: '/admin/social-card-studio',
+                            query: {
+                              articleId: post.id,
+                              title: post.title,
+                              image: post.featuredImg || '',
+                              date: post.createdAt || '',
+                            },
+                          }}
+                          title="Create social card from this article"
+                          aria-label={`Create social card from ${post.title}`}
+                          className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded transition"
+                        >
+                          <FaImage />
                         </Link>
                         <button
                           onClick={() => handleDeleteSingle(post.id)}
