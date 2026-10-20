@@ -108,6 +108,29 @@ export default function SocialCardStudioPage() {
     setSelectedId(layer.id);
   };
 
+  const addHeadline = () => {
+    const source = selected?.kind === 'text' ? selected : layers.find((layer) => layer.id === 'headline-red');
+    const layer: Layer = {
+      id: newId(),
+      kind: 'text',
+      name: 'New headline',
+      text: 'নতুন শিরোনাম',
+      x: 10,
+      y: 30,
+      width: 80,
+      height: 10,
+      fontSize: source?.fontSize ?? 28,
+      color: source?.color ?? '#151515',
+      fontWeight: source?.fontWeight ?? 800,
+      align: source?.align ?? 'center',
+      fontFamily: source?.fontFamily ?? 'Arial, sans-serif',
+      visible: true,
+    };
+    setLayers((current) => [...current, layer]);
+    setSelectedId(layer.id);
+    setNotice('New headline added. Edit its text and drag it into position.');
+  };
+
   const addImage = () => {
     const layer: Layer = { id: newId(), kind: 'image', name: 'New PNG/image', src: '', x: 35, y: 35, width: 25, height: 18, fontSize: 16, color: '#111111', fontWeight: 500, align: 'center', fontFamily: 'Arial, sans-serif', visible: true };
     setLayers((current) => [...current, layer]);
@@ -288,7 +311,7 @@ export default function SocialCardStudioPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-1 font-bold">Edit selected item</h2><p className="mb-3 text-xs text-gray-500">Select text or an image in the preview to change it here.</p>
+            <div className="mb-2 flex items-center justify-between gap-2"><h2 className="font-bold">Edit selected item</h2><button type="button" onClick={addHeadline} className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700">＋ Add headline</button></div><p className="mb-3 text-xs text-gray-500">Select text or an image in the preview to change it here. Add as many independent headlines as you need.</p>
             {!selected ? <p className="text-sm text-gray-500">Select an element on the card.</p> : <>
               <label className="mb-3 block text-xs font-medium">Element name
                 <input value={selected.name} onChange={(e) => updateLayer(selected.id, { name: e.target.value })} className="mt-1 w-full rounded border px-3 py-2 text-sm" />
