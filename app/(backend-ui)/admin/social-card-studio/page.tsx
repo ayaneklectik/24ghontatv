@@ -254,6 +254,7 @@ export default function SocialCardStudioPage() {
                   ) : (
                     <div className="flex h-full w-full items-center whitespace-pre-line break-words" style={{ fontFamily: layer.fontFamily, fontSize: `clamp(6px, ${layer.fontSize / 10}cqw, 80px)`, lineHeight: 1.05, color: layer.color, fontWeight: layer.fontWeight, textAlign: layer.align, justifyContent: layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center' }}>{layer.text}</div>
                   )}
+                  {selectedId === layer.id && layer.kind === 'image' && <button type="button" data-editor-ui onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); fileInputs.current[layer.id]?.click(); }} className="absolute left-1 top-1 z-10 rounded bg-gray-900/90 px-2 py-1 text-[11px] font-semibold text-white shadow hover:bg-black">Replace image</button>}
                   {selectedId === layer.id && <button type="button" data-editor-ui onPointerDown={(event) => startResize(event, layer)} aria-label={`Resize ${layer.name}`} title="Drag to resize" className="absolute bottom-0 right-0 z-10 h-5 w-5 cursor-nwse-resize rounded-tl-md border-2 border-white bg-blue-600 shadow" />}
                 </div>
               ))}
@@ -309,9 +310,11 @@ export default function SocialCardStudioPage() {
                   </select>
                 </label>
               </> : <>
-                <label className="mb-3 block text-xs font-medium">Choose / replace image
-                  <input ref={(el) => { fileInputs.current[selected.id] = el; }} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => { const file = e.target.files?.[0]; if (file) readImage(file, (src) => updateLayer(selected.id, { src })); e.currentTarget.value = ''; }} className="mt-1 block w-full text-xs" />
-                </label>
+                <div className="mb-3">
+                  <p className="mb-2 block text-xs font-medium">{selected.src ? 'Replace this image' : 'Choose an image'}</p>
+                  <input ref={(el) => { fileInputs.current[selected.id] = el; }} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => { const file = e.target.files?.[0]; if (file) readImage(file, (src) => { updateLayer(selected.id, { src }); setNotice('Image updated.'); }); e.currentTarget.value = ''; }} className="sr-only" />
+                  <button type="button" onClick={() => fileInputs.current[selected.id]?.click()} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold hover:bg-gray-50">{selected.src ? 'Choose replacement image…' : 'Choose image from computer…'}</button>
+                </div>
                 <label className="mb-3 block text-xs font-medium">Image fit
                   <span className="mt-1 flex gap-2"><button onClick={() => { const node = document.querySelector(`[data-card-layer="${selected.id}"] img`) as HTMLImageElement | null; if (node) node.style.objectFit = 'cover'; }} className="rounded border px-3 py-1.5">Crop / fill</button><button onClick={() => { const node = document.querySelector(`[data-card-layer="${selected.id}"] img`) as HTMLImageElement | null; if (node) node.style.objectFit = 'contain'; }} className="rounded border px-3 py-1.5">Fit whole</button></span>
                 </label>
