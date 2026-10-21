@@ -48,7 +48,7 @@ export default function Footer({ site }: { site: PublicSiteData }) {
           <section className="site-footer__section site-footer__editors" aria-label="সম্পাদকীয় তথ্য">
             <a href="/" className="site-footer__logo-link" aria-label="24Ghontatv.com">
               <img
-                src="https://24ghontatv.com/public/images/logos/main_logo.jpg"
+                src="https://api.24ghontatv.com/images/logos/main_logo.jpg"
                 alt="24Ghontatv.com"
                 className="site-footer__logo"
               />
