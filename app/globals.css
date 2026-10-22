@@ -155,7 +155,7 @@
 
   .flex.items-center.gap-3:has(> h2 + span) > h2 + span,
   .flex.items-center.gap-3:has(> h1 + span) > h1 + span,
-  button.flex.items-center.gap-1\\.5:has(> span + span) > span + span {
+  button.flex.items-center.gap-1\.5:has(> span + span) > span + span {
     display: inline-block;
     flex-shrink: 0;
     margin: 0 !important;
@@ -170,7 +170,7 @@
     font-size: 1.5em;
   }
 
-  button.flex.items-center.gap-1\\.5:has(> span + span) {
+  button.flex.items-center.gap-1\.5:has(> span + span) {
     gap: 0.23em !important;
   }
 }
