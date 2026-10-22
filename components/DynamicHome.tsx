@@ -252,7 +252,7 @@ function CategorySection({ title, slug, news, reverse = false }: { title: string
           ))}
         </div>
       )}
-      <div className="border-b border-neutral-200 pb-6" />
+      <div className="border-b-4 border-neutral-300 pb-8" />
     </section>
   );
 }
@@ -354,7 +354,7 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
           <Link href="/video/archive" className="rounded-md border border-[#E51A24] bg-white px-8 py-1.5 text-sm text-[#B9141D] shadow-sm transition hover:bg-[#E51A24] hover:text-white">আরো দেখুন</Link>
         </div>
       </div>
-      <div className="border-b-4 border-neutral-300 pb-8" />
+      <div className="border-b border-neutral-200 pb-6" />
     </section>
   );
 }
