@@ -150,7 +150,7 @@
 /* Shared alignment for section headings followed by the red chevron. */
 @layer utilities {
   .flex.items-center.gap-3:has(> h2 + span) {
-    gap: 0.02em !important;
+    gap: 0.03em !important;
   }
 
   .flex.items-center.gap-3:has(> h2 + span) > h2 + span,
@@ -161,10 +161,10 @@
     padding: 0 !important;
     line-height: 1;
     /* Align the chevron's bottom tip with the text's vertical midpoint. */
-    transform: translateY(-0.5em) !important;
+    transform: translateY(-0.4em) !important;
   }
 
   button.flex.items-center.gap-1\.5:has(> span + span) {
-    gap: 0.02em !important;
+    gap: 0.03em !important;
   }
 }
