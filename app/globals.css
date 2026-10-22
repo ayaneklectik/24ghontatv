@@ -154,6 +154,7 @@
   }
 
   .flex.items-center.gap-3:has(> h2 + span) > h2 + span,
+  .flex.items-center.gap-3:has(> h1 + span) > h1 + span,
   button.flex.items-center.gap-1\.5:has(> span + span) > span + span {
     display: inline-block;
     flex-shrink: 0;
