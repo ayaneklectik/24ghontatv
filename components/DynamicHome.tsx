@@ -286,7 +286,7 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
   return (
     <section className="mx-auto mt-8 w-full max-w-[1440px] px-4 font-kalpurush sm:px-6">
       <SectionTitle title="ভিডিও" href="/video/archive" />
-      <div className="relative overflow-hidden rounded-xl border-t-4 border-[#E51A24] bg-neutral-50 px-4 pb-14 pt-5 shadow-sm sm:px-5 sm:pt-6">
+      <div className="relative overflow-hidden rounded-xl border-t-4 border-[#E51A24] bg-[#E51A24] px-4 pb-14 pt-5 shadow-sm sm:px-5 sm:pt-6">
         <div className="mb-5 grid overflow-hidden rounded-xl border border-neutral-200 bg-neutral-950 shadow-md lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
           <div className="aspect-video bg-black">
             {activeVideo.embedUrl ? (
@@ -330,7 +330,7 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
                 type="button"
                 onClick={() => setActiveVideoId(video.id)}
                 aria-pressed={activeVideo.id === video.id}
-                className={`group block w-full rounded-lg p-1.5 text-left transition-colors ${activeVideo.id === video.id ? "bg-white shadow-md ring-2 ring-[#E51A24]" : "border border-neutral-200 bg-white hover:shadow-md"}`}
+                className={`group block w-full rounded-lg p-1.5 text-left transition-colors ${activeVideo.id === video.id ? "bg-white shadow-md ring-2 ring-[#E51A24]" : "border border-white/30 bg-white hover:shadow-md"}`}
               >
                 <div className="relative aspect-video overflow-hidden rounded-md bg-neutral-900">
                   <ImageWithFallback src={thumbnail || "/images/placeholder-news.svg"} alt={video.title} className="h-full w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.03] group-hover:opacity-100" />
