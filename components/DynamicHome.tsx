@@ -252,7 +252,7 @@ function CategorySection({ title, slug, news, reverse = false }: { title: string
           ))}
         </div>
       )}
-      <div className="border-b-4 border-neutral-300 pb-8" />
+      <div className="border-b border-neutral-200 pb-6" />
     </section>
   );
 }
@@ -286,8 +286,8 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
   return (
     <section className="mx-auto mt-8 w-full max-w-[1440px] px-4 font-kalpurush sm:px-6">
       <SectionTitle title="ভিডিও" href="/video/archive" />
-      <div className="relative overflow-hidden bg-[#E51A24] px-10 pb-14 pt-7 sm:px-12">
-        <div className="mb-6 grid overflow-hidden rounded-lg bg-neutral-950 shadow-xl lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+      <div className="relative overflow-hidden rounded-xl border-t-4 border-[#E51A24] bg-neutral-50 px-4 pb-14 pt-5 shadow-sm sm:px-5 sm:pt-6">
+        <div className="mb-5 grid overflow-hidden rounded-xl border border-neutral-200 bg-neutral-950 shadow-md lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
           <div className="aspect-video bg-black">
             {activeVideo.embedUrl ? (
               <iframe
@@ -305,7 +305,7 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
               </a>
             )}
           </div>
-          <div className="flex flex-col justify-center p-5 text-white sm:p-7">
+          <div className="flex flex-col justify-center border-t-2 border-[#E51A24] p-5 text-white sm:border-l-2 sm:border-t-0 sm:p-7">
             <span className="text-xs font-bold uppercase tracking-wider text-red-300">এখন চলছে</span>
             <h3 className="mt-2 text-xl font-black leading-snug sm:text-2xl">{activeVideo.title}</h3>
             {activeVideo.publishedAt && <p className="mt-3 text-sm text-neutral-400">{formatBengaliDateTime(activeVideo.publishedAt) || activeVideo.publishedAt}</p>}
@@ -314,13 +314,13 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
         <button
           type="button"
           onClick={() => setIndex((value) => Math.max(0, value - 1))}
-          className="absolute left-2 top-1/2 z-10 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded bg-black/10 text-4xl text-white transition hover:bg-black/20 disabled:opacity-40"
+          className="absolute left-1 top-[70%] z-10 flex h-10 w-8 -translate-y-1/2 items-center justify-center rounded-r-lg border border-neutral-200 bg-white text-3xl text-neutral-700 shadow-sm transition hover:bg-[#E51A24] hover:text-white disabled:opacity-35 sm:left-2"
           disabled={index === 0}
           aria-label="পেছনের ভিডিও"
         >
           <ChevronLeft />
         </button>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {items.slice(index, index + visible).map((video) => {
             const link = resolveVideoUrl(video.link) || `/video/${encodeURIComponent(video.id)}`;
             const thumbnail = video.thumbnailUrl || youtubeThumbnailUrl(resolveVideoUrl(video.link));
@@ -330,13 +330,13 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
                 type="button"
                 onClick={() => setActiveVideoId(video.id)}
                 aria-pressed={activeVideo.id === video.id}
-                className={`group block w-full text-left ${activeVideo.id === video.id ? "rounded outline outline-2 outline-white" : ""}`}
+                className={`group block w-full rounded-lg p-1.5 text-left transition-colors ${activeVideo.id === video.id ? "bg-white shadow-md ring-2 ring-[#E51A24]" : "border border-neutral-200 bg-white hover:shadow-md"}`}
               >
-                <div className="relative aspect-[16/10] overflow-hidden rounded border border-white/10 bg-neutral-900">
+                <div className="relative aspect-video overflow-hidden rounded-md bg-neutral-900">
                   <ImageWithFallback src={thumbnail || "/images/placeholder-news.svg"} alt={video.title} className="h-full w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.03] group-hover:opacity-100" />
-                  <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#E51A24] text-white shadow-lg"><Play className="h-4 w-4 fill-current" /></span>
+                  <span className="absolute left-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#E51A24] text-white shadow-lg ring-2 ring-white/80"><Play className="h-4 w-4 fill-current" /></span>
                 </div>
-                <h3 className="mt-3 line-clamp-2 text-[15px] leading-snug text-white transition-colors group-hover:text-neutral-100">{video.title}</h3>
+                <h3 className="mt-2 line-clamp-2 text-[15px] leading-snug text-neutral-800 transition-colors group-hover:text-[#E51A24]">{video.title}</h3>
               </button>
             );
           })}
@@ -344,14 +344,14 @@ function VideoSection({ videos }: { videos: PublicHomeData["videos"] }) {
         <button
           type="button"
           onClick={() => setIndex((value) => Math.min(maxIndex, value + 1))}
-          className="absolute right-2 top-1/2 z-10 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded bg-black/10 text-4xl text-white transition hover:bg-black/20 disabled:opacity-40"
+          className="absolute right-1 top-[70%] z-10 flex h-10 w-8 -translate-y-1/2 items-center justify-center rounded-l-lg border border-neutral-200 bg-white text-3xl text-neutral-700 shadow-sm transition hover:bg-[#E51A24] hover:text-white disabled:opacity-35 sm:right-2"
           disabled={index === maxIndex}
           aria-label="পরের ভিডিও"
         >
           <ChevronRight />
         </button>
         <div className="absolute inset-x-0 bottom-3 flex justify-center">
-          <Link href="/video/archive" className="border border-white px-8 py-1 text-sm text-white transition hover:bg-white hover:text-[#E51A24]">আরো দেখুন</Link>
+          <Link href="/video/archive" className="rounded-md border border-[#E51A24] bg-white px-8 py-1.5 text-sm text-[#B9141D] shadow-sm transition hover:bg-[#E51A24] hover:text-white">আরো দেখুন</Link>
         </div>
       </div>
       <div className="border-b-4 border-neutral-300 pb-8" />
