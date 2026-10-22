@@ -161,7 +161,7 @@
     padding: 0 !important;
     line-height: 1;
     /* Align the chevron's bottom tip with the text's vertical midpoint. */
-    transform: translateY(0.4em) !important;
+    transform: translateY(1em) !important;
   }
 
   button.flex.items-center.gap-1\.5:has(> span + span) {
